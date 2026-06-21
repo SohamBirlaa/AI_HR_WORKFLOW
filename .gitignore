@@ -86,6 +86,9 @@ htmlcov/
 # =========================
 
 tmp/
-temp/
 
-docs
+docs/
+implementation_plan/
+rules.md
+AI_HR_Assignment.pdf
+
