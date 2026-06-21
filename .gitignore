@@ -1,0 +1,91 @@
+# =========================
+
+# Python / FastAPI
+
+# =========================
+
+backend/.venv/
+backend/**pycache**/
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/.mypy_cache/
+
+# Environment files
+
+.env
+.env.local
+.env.*.local
+
+# Alembic
+
+backend/alembic/versions/*.pyc
+
+# Uploads
+
+backend/uploads/
+
+# Logs
+
+*.log
+
+# =========================
+
+# Next.js
+
+# =========================
+
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+
+# Build artifacts
+
+frontend/build/
+
+# =========================
+
+# IDE
+
+# =========================
+
+.vscode/
+.idea/
+
+# =========================
+
+# OS Files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# Secrets
+
+# =========================
+
+*.pem
+*.key
+*.crt
+
+# =========================
+
+# Testing
+
+# =========================
+
+.coverage
+htmlcov/
+
+# =========================
+
+# Misc
+
+# =========================
+
+tmp/
+temp/
+
+docs
