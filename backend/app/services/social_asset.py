@@ -147,3 +147,26 @@ class SocialAssetService:
             assets[p] = asset
 
         return assets
+
+    @staticmethod
+    async def get_social_content(
+        job_repo: JobRepository,
+        asset_repo: SocialAssetRepository,
+        job_id: int
+    ) -> Optional[Dict[str, SocialAsset]]:
+        """Retrieves existing social media assets for a job, if they exist."""
+        job = await job_repo.get_by_id(job_id)
+        if not job:
+            return None
+
+        db_assets = await asset_repo.get_by_job_id(job_id)
+        if not db_assets:
+            return None
+
+        assets = {asset.platform.value: asset for asset in db_assets}
+        required_platforms = ["linkedin", "twitter", "facebook", "instagram"]
+        for p in required_platforms:
+            if p not in assets:
+                return None
+
+        return assets

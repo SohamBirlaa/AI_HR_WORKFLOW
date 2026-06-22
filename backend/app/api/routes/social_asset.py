@@ -59,3 +59,34 @@ async def generate_social_content(
         facebook=assets["facebook"],
         instagram=assets["instagram"]
     )
+
+
+@router.get("/{id}/social-content", response_model=SocialAssetBundleResponse)
+async def get_social_content(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve existing social media promotion content for a job posting. Protected route."""
+    job_repo = JobRepository(db)
+    asset_repo = SocialAssetRepository(db)
+    
+    assets = await SocialAssetService.get_social_content(
+        job_repo=job_repo,
+        asset_repo=asset_repo,
+        job_id=id
+    )
+    
+    if assets is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Social content not found for job with ID {id}"
+        )
+        
+    return SocialAssetBundleResponse(
+        job_id=id,
+        linkedin=assets["linkedin"],
+        twitter=assets["twitter"],
+        facebook=assets["facebook"],
+        instagram=assets["instagram"]
+    )
