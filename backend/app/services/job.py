@@ -123,3 +123,29 @@ class JobService:
         job.polished_jd = output
         job.status = JobStatus.JD_GENERATED
         return await repo.update(job)
+
+    @staticmethod
+    async def approve_job(repo: JobRepository, job_id: int) -> Optional[Job]:
+        """Approves a job posting if its current status is 'jd_generated'."""
+        job = await repo.get_by_id(job_id)
+        if not job:
+            return None
+        if job.status != JobStatus.JD_GENERATED:
+            raise ValueError(
+                f"Only jobs in 'jd_generated' status can be approved. Current status: {job.status.value}"
+            )
+        job.status = JobStatus.APPROVED
+        return await repo.update(job)
+
+    @staticmethod
+    async def reject_job(repo: JobRepository, job_id: int) -> Optional[Job]:
+        """Rejects a job posting if its current status is 'jd_generated'."""
+        job = await repo.get_by_id(job_id)
+        if not job:
+            return None
+        if job.status != JobStatus.JD_GENERATED:
+            raise ValueError(
+                f"Only jobs in 'jd_generated' status can be rejected. Current status: {job.status.value}"
+            )
+        job.status = JobStatus.REJECTED
+        return await repo.update(job)
