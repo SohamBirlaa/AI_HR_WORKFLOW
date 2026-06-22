@@ -7,6 +7,8 @@ from app.services.job import JobService
 from app.schemas.job import JobCreate, JobUpdate, JobResponse
 from app.models.user import User
 
+from app.llm.factory import LLMProviderFactory
+
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 @router.get("", response_model=List[JobResponse])
@@ -60,3 +62,37 @@ async def update_job(
             detail=f"Job with ID {id} not found"
         )
     return job
+
+@router.post("/{id}/generate-jd", response_model=JobResponse)
+async def generate_jd(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Refine a raw job description using configured LLM. Protected route."""
+    repo = JobRepository(db)
+    
+    try:
+        provider = LLMProviderFactory.get_provider()
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+        
+    try:
+        job = await JobService.generate_jd(repo, id, provider)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI provider failed: {str(e)}"
+        )
+        
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with ID {id} not found"
+        )
+        
+    return job
+
