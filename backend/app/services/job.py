@@ -149,3 +149,16 @@ class JobService:
             )
         job.status = JobStatus.REJECTED
         return await repo.update(job)
+
+    @staticmethod
+    async def publish_job(repo: JobRepository, job_id: int) -> Optional[Job]:
+        """Publishes a job posting if its current status is 'approved'."""
+        job = await repo.get_by_id(job_id)
+        if not job:
+            return None
+        if job.status != JobStatus.APPROVED:
+            raise ValueError(
+                f"Only jobs in 'approved' status can be published. Current status: {job.status.value}"
+            )
+        job.status = JobStatus.PUBLISHED
+        return await repo.update(job)

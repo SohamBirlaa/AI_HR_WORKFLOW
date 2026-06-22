@@ -144,3 +144,27 @@ async def reject_job(
         )
     return job
 
+
+@router.post("/{id}/publish", response_model=JobResponse)
+async def publish_job(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Publish an approved job posting. Protected route."""
+    repo = JobRepository(db)
+    try:
+        job = await JobService.publish_job(repo, id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with ID {id} not found"
+        )
+    return job
+
