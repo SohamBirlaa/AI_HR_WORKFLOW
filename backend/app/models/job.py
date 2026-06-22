@@ -1,9 +1,13 @@
 import enum
+from typing import TYPE_CHECKING
 from sqlalchemy import Integer, String, Text, Enum, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.social_asset import SocialAsset
 
 class JobStatus(str, enum.Enum):
     DRAFT = "draft"
@@ -14,6 +18,10 @@ class JobStatus(str, enum.Enum):
 
 class Job(Base):
     __tablename__ = "jobs"
+
+    social_assets: Mapped[list["SocialAsset"]] = relationship(
+        "SocialAsset", back_populates="job", cascade="all, delete-orphan"
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)

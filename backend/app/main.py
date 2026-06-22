@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.routes.auth import router as auth_router
 from app.api.routes.job import router as job_router
+from app.api.routes.social_asset import router as social_asset_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -23,6 +24,7 @@ app.add_middleware(
 # Register Router prefixes
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(job_router, prefix="/api/v1")
+app.include_router(social_asset_router, prefix="/api/v1")
 
 # API v1 Health Check Endpoint
 @app.get("/api/v1/health", tags=["health"])
