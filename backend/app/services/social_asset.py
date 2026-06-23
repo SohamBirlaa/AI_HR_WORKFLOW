@@ -17,12 +17,24 @@ class SocialAssetService:
         job_id: int,
         provider: BaseLLMProvider
     ) -> Optional[Dict[str, SocialAsset]]:
-        """Generates social media content for all platforms from an approved or published job."""
+        """Generates social media content for all platforms from an approved or published job.
+        
+        Business Rules & Steps:
+        1. Verify job existence and ensure status is either 'approved' or 'published'.
+        2. Ensure a polished job description exists before continuing.
+        3. Define platform constraints, structured JSON output format, and security delimiters.
+        4. Make LLM call and parse the structured JSON response.
+        5. Validate platform payload formats.
+        6. Apply platform-specific modifications:
+           - Twitter: Cap character count at 280, appending ellipses if needed.
+           - Communities: Append unverified AI tags to ensure transparency.
+        7. Execute database upsert: update values if they already exist, otherwise insert new.
+        """
         job = await job_repo.get_by_id(job_id)
         if not job:
             return None
 
-        # 1. State check
+        # 1. State check - Social content can only be generated for jobs already approved or published
         if job.status not in (JobStatus.APPROVED, JobStatus.PUBLISHED):
             raise ValueError(
                 f"Social content can only be generated for jobs with 'approved' or 'published' status. "
@@ -32,7 +44,7 @@ class SocialAssetService:
         if not job.polished_jd:
             raise ValueError("Polished job description is missing or empty.")
 
-        # 2. Setup prompts
+        # 2. Setup prompts instructions & expected output structures
         system_instruction = (
             "SYSTEM INSTRUCTIONS:\n"
             "You are an expert social media manager.\n"
@@ -123,7 +135,7 @@ class SocialAssetService:
                     comm_str = f"{comm_str} (AI-suggested and unverified)"
                 labelled_communities.append(comm_str)
 
-            # Check if asset already exists
+            # Check if asset already exists to decide between creation or modification
             existing_asset = await asset_repo.get_by_job_and_platform(job_id, platform_enum)
             if existing_asset:
                 existing_asset.caption = caption

@@ -16,7 +16,10 @@ async def list_jobs(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieve list of all job postings. Protected route."""
+    """Retrieve list of all job postings. Protected route.
+    
+    Returns all jobs saved in the database, ordered by ID ascending.
+    """
     repo = JobRepository(db)
     return await JobService.list_jobs(repo)
 
@@ -26,7 +29,10 @@ async def create_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new job posting. Protected route."""
+    """Create a new job posting. Protected route.
+    
+    Accepts title, company name, and raw JD text. Defaults status to Draft.
+    """
     repo = JobRepository(db)
     return await JobService.create_job(repo, schema)
 
@@ -36,7 +42,10 @@ async def get_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieve a single job posting by ID. Protected route."""
+    """Retrieve a single job posting by ID. Protected route.
+    
+    Raises 404 error if job ID does not exist.
+    """
     repo = JobRepository(db)
     job = await JobService.get_job(repo, id)
     if not job:
@@ -53,7 +62,10 @@ async def update_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Update details of a job posting by ID using partial fields. Protected route."""
+    """Update details of a job posting by ID using partial fields. Protected route.
+    
+    Allows changing title, company_name, raw_jd, polished_jd, or status directly.
+    """
     repo = JobRepository(db)
     job = await JobService.update_job(repo, id, schema)
     if not job:
@@ -69,7 +81,11 @@ async def generate_jd(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Refine a raw job description using configured LLM. Protected route."""
+    """Refine a raw job description using configured LLM. Protected route.
+    
+    Delegates to the LLM provider to rewrite raw JD into structured format, 
+    verifies the 800-word constraint, and transitions status to jd_generated.
+    """
     repo = JobRepository(db)
     
     try:
@@ -84,7 +100,7 @@ async def generate_jd(
         job = await JobService.generate_jd(repo, id, provider)
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
+            status_code=status.HTTP_524_A_TIMEOUT if "timeout" in str(e).lower() else status.HTTP_502_BAD_GATEWAY,
             detail=f"AI provider failed: {str(e)}"
         )
         
@@ -103,7 +119,11 @@ async def approve_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Approve a generated job description. Protected route."""
+    """Approve a generated job description. Protected route.
+    
+    Transitions status from jd_generated to approved. 
+    Only approved JDs can be published or have social assets generated.
+    """
     repo = JobRepository(db)
     try:
         job = await JobService.approve_job(repo, id)
@@ -127,7 +147,11 @@ async def reject_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Reject a generated job description. Protected route."""
+    """Reject a generated job description. Protected route.
+    
+    Transitions status from jd_generated to rejected. 
+    Allows the user to revise the raw text and regenerate it again.
+    """
     repo = JobRepository(db)
     try:
         job = await JobService.reject_job(repo, id)
@@ -151,7 +175,11 @@ async def publish_job(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Publish an approved job posting. Protected route."""
+    """Publish an approved job posting. Protected route.
+    
+    Transitions status from approved to published. 
+    This exposes the listing to candidate-facing routes.
+    """
     repo = JobRepository(db)
     try:
         job = await JobService.publish_job(repo, id)

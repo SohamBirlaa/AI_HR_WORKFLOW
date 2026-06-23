@@ -23,7 +23,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // If user is already logged in, redirect them to dashboard
+  // Session redirect: If the recruiter is already logged in, redirect straight to the dashboard
   useEffect(() => {
     if (user) {
       router.push("/dashboard");
@@ -38,14 +38,18 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Handle form submission: post to backend and save token on success
   const onSubmit = async (data: LoginFields) => {
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
+      // POST login details to the FastAPI auth login router
       const response = await api.post("/auth/login", {
         email: data.email,
         password: data.password,
       });
+      
+      // If server returns token, save it via the context login function and route to dashboard
       if (response.data?.access_token) {
         login(response.data.access_token);
         router.push("/dashboard");
@@ -54,6 +58,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error("Login request failed:", err);
+      // Map API status codes and details to user-facing error messages
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setErrorMsg("Incorrect email or password.");
       } else if (axios.isAxiosError(err) && err.response?.data?.detail) {

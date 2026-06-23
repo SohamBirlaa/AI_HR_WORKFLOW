@@ -53,6 +53,7 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router, mounted]);
 
+  // Retrieve all job openings from the backend
   const fetchJobs = useCallback(async () => {
     setLoadingJobs(true);
     setErrorMsg(null);
@@ -71,6 +72,7 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Fetch jobs list once the client is mounted and auth validation has confirmed a valid session
   useEffect(() => {
     if (mounted && user) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -98,13 +100,13 @@ export default function DashboardPage() {
     return null; // Prevents layout flash before redirection
   }
 
-  // Calculate statistics
+  // Calculate statistics from the full job list to populate top cards
   const totalCount = jobs.length;
   const draftCount = jobs.filter(j => j.status.toLowerCase() === "draft").length;
   const approvedCount = jobs.filter(j => j.status.toLowerCase() === "approved").length;
   const publishedCount = jobs.filter(j => j.status.toLowerCase() === "published").length;
 
-  // Filter listings
+  // Filter listings based on selected tab filter status
   const filteredJobs = jobs.filter(j => {
     if (filterStatus === "all") return true;
     return j.status.toLowerCase() === filterStatus.toLowerCase();

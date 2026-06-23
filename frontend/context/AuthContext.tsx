@@ -21,18 +21,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // Store details of the currently authenticated User profile
   const [user, setUser] = useState<User | null>(null);
+  
+  // Set initial loading state to true on mount if the 'auth_token' cookie exists
+  // this prevents flashes of unauthenticated content during app boot
   const [loading, setLoading] = useState<boolean>(() => {
     // Check token presence immediately to set loading state on mount
     return typeof window !== "undefined" && !!Cookies.get("auth_token");
   });
 
+  // Fetch the authenticated user profile data from /auth/me using the stored cookie
   const loadUser = useCallback(async () => {
     try {
       const response = await api.get<User>("/auth/me");
       setUser(response.data);
     } catch (error) {
       console.error("Failed to fetch current user:", error);
+      // Clean up invalid or expired tokens
       Cookies.remove("auth_token");
       setUser(null);
     } finally {
@@ -40,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Run the session verification once when the component mounts
   useEffect(() => {
     const token = Cookies.get("auth_token");
     if (token) {
@@ -49,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // If no token, loading was initialized to false, so no action/render cycle is needed.
   }, [loadUser]);
 
+  // Login handler: stores token in a Strict SameSite cookie and loads the user info
   const login = useCallback(async (token: string) => {
     Cookies.set("auth_token", token, { expires: 7, path: "/", sameSite: "strict" });
     setLoading(true);
@@ -64,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Logout handler: clears cookie and resets state variables
   const logout = useCallback(() => {
     Cookies.remove("auth_token", { path: "/" });
     setUser(null);

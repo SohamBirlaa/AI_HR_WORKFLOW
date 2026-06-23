@@ -80,6 +80,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     }
   }, [user, authLoading, router, mounted]);
 
+  // Fetch the main job model properties and optionally fetch related social promotion assets
   const fetchJobDetails = useCallback(async () => {
     setLoadingJob(true);
     setErrorMsg(null);
@@ -87,7 +88,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       const response = await api.get<Job>(`/jobs/${jobId}`);
       setJob(response.data);
       
-      // Auto switch tabs based on job status state
+      // Auto switch tabs based on job status state: display polished tab directly if available
       if (response.data.polished_jd) {
         setActiveTab("polished");
       }
@@ -121,16 +122,19 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     }
   }, [user, fetchJobDetails, mounted]);
 
-  // Execute workflow status operations
+  // Execute workflow status operations: Approve, Reject, Publish, or Generate JD/Social assets.
+  // Performs a POST request to the corresponding state machine endpoint on the backend.
   const handleWorkflowAction = async (action: "generate-jd" | "approve" | "reject" | "publish" | "generate-social-content") => {
     setActionLoading(action);
     setErrorMsg(null);
     try {
       if (action === "generate-social-content") {
+        // Social assets have a unique route endpoint and returns a SocialContentBundle
         const response = await api.post<SocialContentBundle>(`/jobs/${jobId}/generate-social-content`);
         setSocialContent(response.data);
         setActiveTab("social");
       } else {
+        // Status updates returns the updated Job object model
         const response = await api.post<Job>(`/jobs/${jobId}/${action}`);
         setJob(response.data);
         if (action === "generate-jd") {

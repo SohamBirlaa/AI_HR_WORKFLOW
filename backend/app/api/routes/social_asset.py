@@ -16,7 +16,14 @@ async def generate_social_content(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Generate social media promotion content from an approved or published job. Protected route."""
+    """Generate social media promotion content from an approved or published job. Protected route.
+    
+    Workflow:
+    1. Instantiates the configured LLM provider wrapper.
+    2. Invokes SocialAssetService to call LLM, parse JSON response, validate platform layouts, 
+       enforce limits, and store assets.
+    3. Returns a structured multi-channel response bundle.
+    """
     job_repo = JobRepository(db)
     asset_repo = SocialAssetRepository(db)
     
@@ -42,7 +49,7 @@ async def generate_social_content(
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_524_A_TIMEOUT if "timeout" in str(e).lower() else status.HTTP_502_BAD_GATEWAY,
+            status_code=status.HTTP_524_A_TIMEOUT if "timeout" in str(e).lower() else status.HTTP_524_A_TIMEOUT if "timeout" in str(e).lower() else status.HTTP_502_BAD_GATEWAY,
             detail=f"AI provider failed: {str(e)}"
         )
         
@@ -67,7 +74,11 @@ async def get_social_content(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Retrieve existing social media promotion content for a job posting. Protected route."""
+    """Retrieve existing social media promotion content for a job posting. Protected route.
+    
+    Fetches already generated and stored promotional content for LinkedIn, Twitter, 
+    Facebook, and Instagram from the repository. Raises 404 if not found.
+    """
     job_repo = JobRepository(db)
     asset_repo = SocialAssetRepository(db)
     
