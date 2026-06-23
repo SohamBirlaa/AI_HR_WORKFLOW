@@ -1,12 +1,13 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Form, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.dependencies import get_db
+from app.api.dependencies import get_db, get_screening_queue
 from app.repositories.job import JobRepository
 from app.repositories.candidate import CandidateRepository
 from app.repositories.application import ApplicationRepository
 from app.services.candidate import CandidateService
 from app.services.storage import S3StorageService
+from app.services.queue_base import BaseScreeningQueue
 from app.schemas.candidate import PublicJobResponse, CandidateCreate, ApplicationResponse
 from app.models.job import JobStatus
 
@@ -61,12 +62,14 @@ async def apply_to_job(
     github_url: Optional[str] = Form(None),
     consent_given: bool = Form(...),
     resume: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    queue: BaseScreeningQueue = Depends(get_screening_queue)
 ):
     """Submit application form and resume upload to a published job. Public endpoint.
     
     Inputs: Form fields and raw resume UploadFile stream.
     Validates parameter inputs and passes the file stream directly to CandidateService.
+    Immediately triggers background AI screening task prior to returning.
     """
     # Create repos
     candidate_repo = CandidateRepository(db)
@@ -101,6 +104,34 @@ async def apply_to_job(
             filename=resume.filename,
             content_type=resume.content_type
         )
+        
+        # Synchronously pre-create or reset the screening result to PENDING status
+        # to prevent 404 errors if the client queries it before the background task starts.
+        from app.repositories.screening import ScreeningRepository
+        from app.models.screening import ScreeningResult, ScreeningStatus
+        
+        screening_repo = ScreeningRepository(db)
+        existing_screening = await screening_repo.get_by_application_id(application.id)
+        if not existing_screening:
+            screening_obj = ScreeningResult(
+                application_id=application.id,
+                status=ScreeningStatus.PENDING
+            )
+            await screening_repo.create(screening_obj)
+        else:
+            existing_screening.status = ScreeningStatus.PENDING
+            existing_screening.skills_score = None
+            existing_screening.experience_score = None
+            existing_screening.education_score = None
+            existing_screening.overall_score = None
+            existing_screening.reasoning = None
+            existing_screening.strengths = None
+            existing_screening.concerns = None
+            await screening_repo.update(existing_screening)
+        
+        # Trigger async AI Resume screening task
+        await queue.enqueue_screening(application.id)
+        
         return application
     except ValueError as e:
         # Business logic errors (invalid file structure, consent missing, unpublished job)

@@ -116,3 +116,14 @@ class S3StorageService(BaseStorageService):
         except ClientError as e:
             # Fallback or error resolution
             raise RuntimeError(f"Failed to generate presigned download URL: {str(e)}") from e
+
+    def download_file(self, storage_key: str) -> bytes:
+        """Downloads file contents as bytes from MinIO/S3 using the storage key."""
+        try:
+            response = self.s3_client.get_object(
+                Bucket=self.bucket_name,
+                Key=storage_key
+            )
+            return response["Body"].read()
+        except ClientError as e:
+            raise RuntimeError(f"Failed to download resume file from storage: {str(e)}") from e

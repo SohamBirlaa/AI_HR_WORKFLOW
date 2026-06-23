@@ -49,3 +49,5 @@ class Application(Base):
     # Relationships
     candidate = relationship("Candidate", backref="applications")
     job = relationship("Job", backref="applications")
+    screening_result = relationship("ScreeningResult", uselist=False, back_populates="application", cascade="all, delete-orphan")
+

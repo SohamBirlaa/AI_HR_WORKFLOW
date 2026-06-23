@@ -5,6 +5,8 @@ from app.repositories.application import ApplicationRepository
 from app.services.candidate import CandidateService
 from app.services.storage import S3StorageService
 from app.schemas.candidate import ApplicationHRResponse
+from app.schemas.screening import ScreeningResultResponse
+from app.repositories.screening import ScreeningRepository
 from app.models.user import User
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -44,3 +46,32 @@ async def get_application(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve application details: {str(e)}"
         )
+
+
+@router.get("/{application_id}/screening", response_model=ScreeningResultResponse)
+async def get_application_screening(
+    application_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve AI screening results for a specific application. Protected route.
+    
+    Checks credentials, queries database for ScreeningResult, and returns it.
+    """
+    application_repo = ApplicationRepository(db)
+    application = await application_repo.get_by_id(application_id)
+    if not application:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Application with ID {application_id} not found."
+        )
+
+    screening_repo = ScreeningRepository(db)
+    screening = await screening_repo.get_by_application_id(application_id)
+    if not screening:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Screening result for application ID {application_id} not found."
+        )
+    return screening
+

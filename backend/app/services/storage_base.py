@@ -17,3 +17,15 @@ class BaseStorageService(ABC):
     def get_resume_download_url(self, storage_key: str) -> str:
         """Fetch a temporary or direct retrieval link for a stored object."""
         pass
+
+    @abstractmethod
+    def download_file(self, storage_key: str) -> bytes:
+        """Downloads file contents as bytes from the persistence layer.
+        
+        Args:
+            storage_key: The identifier for the stored file.
+        
+        Returns:
+            The raw file content as bytes.
+        """
+        pass

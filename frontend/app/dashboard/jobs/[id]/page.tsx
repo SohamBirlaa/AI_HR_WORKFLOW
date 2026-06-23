@@ -75,6 +75,22 @@ interface Application {
   resume_download_url?: string;
 }
 
+interface ScreeningResult {
+  id: number;
+  application_id: number;
+  status: "pending" | "processing" | "completed" | "failed";
+  skills_score: number | null;
+  experience_score: number | null;
+  education_score: number | null;
+  overall_score: number | null;
+  reasoning: string | null;
+  strengths: string[] | null;
+  concerns: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
+
+
 export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: jobIdStr } = use(params);
   const jobId = parseInt(jobIdStr, 10);
@@ -96,6 +112,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
   const [loadingApps, setLoadingApps] = useState(false);
   const [appsError, setAppsError] = useState<string | null>(null);
+
+  // AI Resume screening states
+  const [screening, setScreening] = useState<ScreeningResult | null>(null);
+  const [loadingScreening, setLoadingScreening] = useState(false);
+  const [screeningError, setScreeningError] = useState<string | null>(null);
 
   // Fetch applications list from database via the protected endpoint
   const fetchApplications = useCallback(async () => {
@@ -120,6 +141,36 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     }
   }, [jobId]);
 
+  // Fetch the AI Screening results for the selected application
+  const fetchScreeningResult = useCallback(async (appId: number) => {
+    setLoadingScreening(true);
+    setScreeningError(null);
+    try {
+      const response = await api.get<ScreeningResult>(`/applications/${appId}/screening`);
+      setScreening(response.data);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err);
+      setScreening(null);
+      setScreeningError(
+        err.response?.data?.detail || "Failed to retrieve screening data."
+      );
+    } finally {
+      setLoadingScreening(false);
+    }
+  }, []);
+
+  // Fetch screening results when a new candidate is selected or tab is switched
+  useEffect(() => {
+    if (selectedAppId && activeTab === "applications" && mounted && user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchScreeningResult(selectedAppId);
+    } else {
+      setScreening(null);
+      setScreeningError(null);
+    }
+  }, [selectedAppId, activeTab, mounted, user, fetchScreeningResult]);
+
   // Load applications whenever Applications tab becomes active
   useEffect(() => {
     if (activeTab === "applications" && mounted && user) {
@@ -127,6 +178,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       fetchApplications();
     }
   }, [activeTab, fetchApplications, mounted, user]);
+
 
   // Set mounted state
   useEffect(() => {
@@ -786,9 +838,171 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                             </div>
                           </div>
 
+                          {/* AI Resume Screening Section */}
+                          <div className="border-t border-slate-200 pt-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="block text-[10px] uppercase font-bold text-slate-400">AI Resume Screening</span>
+                              {screening && (screening.status === "pending" || screening.status === "processing") && (
+                                <button
+                                  onClick={() => fetchScreeningResult(selectedApp.id)}
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-650 hover:text-indigo-850 transition-colors uppercase tracking-wider cursor-pointer"
+                                >
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  <span>Syncing...</span>
+                                </button>
+                              )}
+                              {screening && (screening.status === "completed" || screening.status === "failed") && (
+                                <button
+                                  onClick={() => fetchScreeningResult(selectedApp.id)}
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-wider cursor-pointer"
+                                >
+                                  Refresh
+                                </button>
+                              )}
+                            </div>
+
+                            {loadingScreening ? (
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                                <span className="text-xs text-slate-500 font-medium">Fetching screening results...</span>
+                              </div>
+                            ) : screeningError ? (
+                              <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 text-xs text-rose-700 flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="font-bold">Failed to load screening data</p>
+                                  <p className="text-[11px] text-rose-600 font-medium mt-0.5">{screeningError}</p>
+                                  <button
+                                    onClick={() => fetchScreeningResult(selectedApp.id)}
+                                    className="mt-2 text-[10px] font-bold uppercase text-rose-800 hover:underline cursor-pointer"
+                                  >
+                                    Try Again
+                                  </button>
+                                </div>
+                              </div>
+                            ) : screening ? (
+                              <>
+                                {(screening.status === "pending" || screening.status === "processing") && (
+                                  <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-col items-center justify-center text-center py-6 space-y-2">
+                                    <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                                    <h4 className="text-xs font-bold text-indigo-900">Analysis In Progress</h4>
+                                    <p className="text-[10px] text-indigo-650 max-w-xs leading-normal">
+                                      The candidate&apos;s resume is currently being parsed and scored by the AI engine. This process runs in the background and takes up to 30 seconds.
+                                    </p>
+                                    <button
+                                      onClick={() => fetchScreeningResult(selectedApp.id)}
+                                      className="mt-1 inline-flex items-center gap-1 bg-white border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 text-[10px] font-bold shadow-xs hover:bg-indigo-50 transition-all cursor-pointer"
+                                    >
+                                      Check Status
+                                    </button>
+                                  </div>
+                                )}
+
+                                {screening.status === "failed" && (
+                                  <div className="bg-rose-50/60 border border-rose-100 rounded-xl p-4 space-y-2">
+                                    <div className="flex items-center gap-2 text-rose-850">
+                                      <XCircle className="h-4 w-4 text-rose-500" />
+                                      <h4 className="text-xs font-bold">Screening Evaluation Failed</h4>
+                                    </div>
+                                    <p className="text-[11px] text-rose-650 leading-relaxed font-medium">
+                                      {screening.reasoning || "The AI evaluation failed during text extraction or LLM completion."}
+                                    </p>
+                                    <button
+                                      onClick={() => fetchScreeningResult(selectedApp.id)}
+                                      className="inline-flex items-center gap-1 bg-white border border-rose-200 text-rose-700 rounded-lg px-3 py-1.5 text-[10px] font-bold shadow-xs hover:bg-rose-50 transition-all cursor-pointer"
+                                    >
+                                      Retry Check
+                                    </button>
+                                  </div>
+                                )}
+
+                                {screening.status === "completed" && (
+                                  <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-xs select-text">
+                                    
+                                    {/* Score Header Grid */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                      <div className="bg-indigo-50/40 border border-indigo-100 rounded-lg p-2.5 text-center">
+                                        <span className="block text-[9px] uppercase font-bold text-indigo-500">Overall Match</span>
+                                        <span className="text-lg font-black text-indigo-700">{screening.overall_score}%</span>
+                                      </div>
+                                      <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-center">
+                                        <span className="block text-[9px] uppercase font-bold text-slate-400">Skills Score</span>
+                                        <span className="text-base font-bold text-slate-800">{screening.skills_score}/100</span>
+                                      </div>
+                                      <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-center">
+                                        <span className="block text-[9px] uppercase font-bold text-slate-400">Experience</span>
+                                        <span className="text-base font-bold text-slate-800">{screening.experience_score}/100</span>
+                                      </div>
+                                      <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-center">
+                                        <span className="block text-[9px] uppercase font-bold text-slate-400">Education</span>
+                                        <span className="text-base font-bold text-slate-800">{screening.education_score}/100</span>
+                                      </div>
+                                    </div>
+
+                                    {/* AI Reasoning Summary */}
+                                    {screening.reasoning && (
+                                      <div className="space-y-1 bg-slate-50/50 p-3 rounded-lg border border-slate-100">
+                                        <span className="block text-[9px] uppercase font-bold text-slate-400">AI Evaluation Reasoning</span>
+                                        <p className="text-[11px] text-slate-650 leading-relaxed font-normal">{screening.reasoning}</p>
+                                      </div>
+                                    )}
+
+                                    {/* Strengths & Concerns Lists */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                                      {/* Strengths */}
+                                      <div className="space-y-1.5">
+                                        <span className="block text-[9px] uppercase font-bold text-emerald-600">Strengths</span>
+                                        {screening.strengths && screening.strengths.length > 0 ? (
+                                          <ul className="space-y-1 text-[11px] text-slate-700">
+                                            {screening.strengths.map((str, idx) => (
+                                              <li key={idx} className="flex items-start gap-1.5">
+                                                <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
+                                                <span>{str}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        ) : (
+                                          <span className="text-[10px] text-slate-400 block font-medium italic">No specific strengths listed.</span>
+                                        )}
+                                      </div>
+
+                                      {/* Concerns */}
+                                      <div className="space-y-1.5">
+                                        <span className="block text-[9px] uppercase font-bold text-amber-600">Concerns (Advisory)</span>
+                                        {screening.concerns && screening.concerns.length > 0 ? (
+                                          <ul className="space-y-1 text-[11px] text-slate-700">
+                                            {screening.concerns.map((con, idx) => (
+                                              <li key={idx} className="flex items-start gap-1.5">
+                                                <span className="text-amber-500 font-bold shrink-0 mt-0.5">⚠</span>
+                                                <span>{con}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        ) : (
+                                          <span className="text-[10px] text-slate-400 block font-medium italic">No concerns identified.</span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="text-[10px] text-slate-400 leading-normal border-t border-slate-100 pt-2 flex items-center gap-1 justify-center">
+                                      <span>ℹ</span>
+                                      <span className="font-semibold italic">Screening results are advisory-only soft heuristics. All final decisions are manual.</span>
+                                    </div>
+
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center gap-2">
+                                <span className="text-xs text-slate-450 italic">No screening data found. Click Refresh to synchronize.</span>
+                              </div>
+                            )}
+                          </div>
+
                           {/* Resume Access Section */}
                           <div className="bg-slate-100/50 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-3">
+
                               <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                                 <FileText className="h-5 w-5" />
                               </div>

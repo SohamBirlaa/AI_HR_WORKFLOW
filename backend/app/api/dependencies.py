@@ -1,5 +1,5 @@
 from typing import AsyncGenerator
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +7,7 @@ from app.core.database import async_session_maker
 from app.core.config import settings
 from app.repositories.user import UserRepository
 from app.models.user import User
+from app.services.queue_base import BaseScreeningQueue
 
 # oauth2_scheme points to our login endpoint for token retrieval
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
@@ -67,3 +68,12 @@ async def get_current_user(
             detail="Inactive user"
         )
     return user
+
+
+async def get_screening_queue(background_tasks: BackgroundTasks) -> BaseScreeningQueue:
+    """Dependency injection resolving the active screening queue implementation.
+    
+    Returns the FastAPI request-scoped BackgroundTasks implementation of the queue.
+    """
+    from app.services.queue import BackgroundTaskScreeningQueue
+    return BackgroundTaskScreeningQueue(background_tasks)
