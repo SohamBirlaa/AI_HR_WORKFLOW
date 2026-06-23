@@ -575,7 +575,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
               activeTab === "overview"
                 ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
             }`}
           >
             Overview
@@ -585,7 +585,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
               activeTab === "polished"
                 ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
             }`}
           >
             Polished JD (AI)
@@ -595,7 +595,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
               activeTab === "social"
                 ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
             }`}
           >
             Social Content
@@ -605,7 +605,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
               activeTab === "applications"
                 ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
             }`}
           >
             Applications
@@ -622,7 +622,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 
                 {/* Raw JD Card */}
                 <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3 shadow-xs">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wider border-b border-slate-100 pb-2">
                     <FileText className="h-4 w-4" />
                     <span>Raw Job Description Input</span>
                   </div>
@@ -642,29 +642,29 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                   
                   <div className="space-y-3">
                     <div>
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">Company Name</span>
+                      <span className="block text-[10px] uppercase font-medium text-slate-600">Company Name</span>
                       <span className="text-sm font-medium text-slate-800 select-text">{job.company_name}</span>
                     </div>
 
                     {job.company_details && (
                       <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400">Company Details</span>
+                        <span className="block text-[10px] uppercase font-medium text-slate-600">Company Details</span>
                         <span className="text-xs text-slate-600 block leading-normal select-text">{job.company_details}</span>
                       </div>
                     )}
 
                     <div>
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">Created Date</span>
+                      <span className="block text-[10px] uppercase font-medium text-slate-600">Created Date</span>
                       <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium select-text mt-0.5">
-                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        <Clock className="h-3.5 w-3.5 text-slate-500" />
                         <span>{new Date(job.created_at).toLocaleString()}</span>
                       </div>
                     </div>
 
                     <div>
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">Last Modified</span>
+                      <span className="block text-[10px] uppercase font-medium text-slate-600">Last Modified</span>
                       <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium select-text mt-0.5">
-                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        <Clock className="h-3.5 w-3.5 text-slate-500" />
                         <span>{new Date(job.updated_at).toLocaleString()}</span>
                       </div>
                     </div>
@@ -679,7 +679,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4 shadow-xs">
               {job.polished_jd ? (
                 <>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wider border-b border-slate-100 pb-2">
                     <Sparkles className="h-4 w-4 text-amber-500" />
                     <span>AI-Refined Structured Job Description</span>
                   </div>
@@ -721,7 +721,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                   
                   {/* Left columns: Generated platform assets */}
                   <div className="lg:col-span-2 space-y-4">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wider">
                       <Share2 className="h-4 w-4 text-indigo-500" />
                       <span>Social Media Captions</span>
                     </div>
@@ -752,7 +752,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                   {/* Right column: Mock Branded visual */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wider">
                       <Globe className="h-4 w-4 text-emerald-500" />
                       <span>Branded Visual Card Template</span>
                     </div>
@@ -839,7 +839,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                               </span>
                             </div>
                             <p className="text-xs text-slate-500 truncate">{app.candidate.email}</p>
-                            <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
+                            <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
                               <span>Applied {new Date(app.applied_at).toLocaleDateString()}</span>
                             </div>
                           </div>
@@ -863,79 +863,79 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                       }
                       return (
                         <div className="space-y-6">
-                          {/* Candidate Header */}
-                          <div className="border-b border-slate-200 pb-4 space-y-1">
-                            <h3 className="text-lg font-extrabold text-slate-900 select-text">{selectedApp.candidate.name}</h3>
-                            <p className="text-xs font-semibold text-slate-400">Application ID: {selectedApp.id}</p>
-                          </div>
-
-                          {/* Candidate Info Grid */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <span className="block text-[10px] uppercase font-bold text-slate-400">Email Address</span>
-                              <a href={`mailto:${selectedApp.candidate.email}`} className="text-sm font-semibold text-slate-800 hover:text-indigo-600 hover:underline select-text">
-                                {selectedApp.candidate.email}
-                              </a>
-                            </div>
-                            <div>
-                              <span className="block text-[10px] uppercase font-bold text-slate-400">Phone Number</span>
-                              <span className="text-sm font-semibold text-slate-800 select-text">
-                                {selectedApp.candidate.phone}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="block text-[10px] uppercase font-bold text-slate-400">Applied Date</span>
-                              <span className="text-sm font-semibold text-slate-800 select-text">
-                                {new Date(selectedApp.applied_at).toLocaleString()}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="block text-[10px] uppercase font-bold text-slate-400">Consent Given</span>
-                              <span className="text-sm font-semibold text-emerald-600 select-text">
-                                Yes, Consent Agreed
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Social Profiles */}
-                          <div className="space-y-2">
-                            <span className="block text-[10px] uppercase font-bold text-slate-400">Professional Links</span>
-                            <div className="flex flex-wrap gap-3">
-                              {selectedApp.candidate.linkedin_url ? (
-                                <a
-                                  href={selectedApp.candidate.linkedin_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
-                                >
-                                  LinkedIn
-                                </a>
-                              ) : (
-                                <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-400 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
-                                  No LinkedIn Provided
-                                </span>
-                              )}
-                              {selectedApp.candidate.github_url ? (
-                                <a
-                                  href={selectedApp.candidate.github_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
-                                >
-                                  GitHub
-                                </a>
-                              ) : (
-                                <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-400 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
-                                  No GitHub Provided
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                           {/* Candidate Header */}
+                           <div className="border-b border-slate-200 pb-4 space-y-1">
+                             <h3 className="text-lg font-extrabold text-slate-900 select-text">{selectedApp.candidate.name}</h3>
+                             <p className="text-xs font-semibold text-slate-500">Application ID: {selectedApp.id}</p>
+                           </div>
+ 
+                           {/* Candidate Info Grid */}
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <div>
+                               <span className="block text-[10px] uppercase font-medium text-slate-600">Email Address</span>
+                               <a href={`mailto:${selectedApp.candidate.email}`} className="text-sm font-semibold text-slate-800 hover:text-indigo-600 hover:underline select-text">
+                                 {selectedApp.candidate.email}
+                               </a>
+                             </div>
+                             <div>
+                               <span className="block text-[10px] uppercase font-medium text-slate-600">Phone Number</span>
+                               <span className="text-sm font-semibold text-slate-800 select-text">
+                                 {selectedApp.candidate.phone}
+                               </span>
+                             </div>
+                             <div>
+                               <span className="block text-[10px] uppercase font-medium text-slate-600">Applied Date</span>
+                               <span className="text-sm font-semibold text-slate-800 select-text">
+                                 {new Date(selectedApp.applied_at).toLocaleString()}
+                               </span>
+                             </div>
+                             <div>
+                               <span className="block text-[10px] uppercase font-medium text-slate-600">Consent Given</span>
+                               <span className="text-sm font-semibold text-emerald-600 select-text">
+                                 Yes, Consent Agreed
+                               </span>
+                             </div>
+                           </div>
+ 
+                           {/* Social Profiles */}
+                           <div className="space-y-2">
+                             <span className="block text-[10px] uppercase font-medium text-slate-600">Professional Links</span>
+                             <div className="flex flex-wrap gap-3">
+                               {selectedApp.candidate.linkedin_url ? (
+                                 <a
+                                   href={selectedApp.candidate.linkedin_url}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
+                                 >
+                                   LinkedIn
+                                 </a>
+                               ) : (
+                                 <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-500 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
+                                   No LinkedIn Provided
+                                 </span>
+                               )}
+                               {selectedApp.candidate.github_url ? (
+                                 <a
+                                   href={selectedApp.candidate.github_url}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
+                                 >
+                                   GitHub
+                                 </a>
+                               ) : (
+                                 <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-500 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
+                                   No GitHub Provided
+                                 </span>
+                               )}
+                             </div>
+                           </div>
 
                           {/* Dynamic Combined Match Index Card */}
                           <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs select-text">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                              <span className="block text-[10px] uppercase font-bold text-slate-500">Combined Match Index</span>
+                              <span className="block text-[10px] uppercase font-semibold text-slate-600">Combined Match Index</span>
                               <span className="inline-flex items-center gap-1 text-[9px] text-indigo-500 font-bold bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider select-none">
                                 Advisory-Only
                               </span>
@@ -944,7 +944,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                             {loadingCombined ? (
                               <div className="flex items-center justify-center py-4 gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
-                                <span className="text-xs text-slate-400 font-medium">Calculating dynamic match...</span>
+                                <span className="text-xs text-slate-500 font-medium">Calculating dynamic match...</span>
                               </div>
                             ) : combinedError ? (
                               <p className="text-xs text-rose-500 font-medium">{combinedError}</p>
@@ -952,7 +952,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                               <div className="space-y-4">
                                 <div className="flex items-center gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                                   <div className="h-16 w-16 rounded-full bg-slate-900 flex flex-col items-center justify-center text-white shrink-0 shadow-xs select-none">
-                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight -mb-1">Score</span>
+                                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-tight -mb-1">Score</span>
                                     <span className="text-lg font-black">{combinedScore.combined_score !== null ? `${combinedScore.combined_score}%` : "N/A"}</span>
                                   </div>
                                   <div className="space-y-0.5">
@@ -965,7 +965,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                                 {/* Contributions progress bars */}
                                 <div className="space-y-3 pt-1">
-                                  <span className="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Contributions Summary</span>
+                                  <span className="block text-[9px] uppercase font-semibold text-slate-600 tracking-wider">Contributions Summary</span>
                                   
                                   <div className="space-y-2.5">
                                     {/* CV Match */}
@@ -1040,7 +1040,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                           {/* LinkedIn Manual Assessment Form */}
                           <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs">
                             <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
-                              <span className="block text-[10px] uppercase font-bold text-slate-500">LinkedIn manual evaluation</span>
+                              <span className="block text-[10px] uppercase font-semibold text-slate-600">LinkedIn manual evaluation</span>
                               <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 text-[9px] font-bold text-slate-650 border border-slate-200 uppercase tracking-tight select-none">
                                 HR Assessment
                               </span>
@@ -1112,12 +1112,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                               ) : null}
                               <span>{savingLinkedin ? "Saving..." : "Save LinkedIn Evaluation"}</span>
                             </button>
-                          </div>
-
-                          {/* AI Resume Screening Section */}
+                          </div>                          {/* AI Resume Screening Section */}
                           <div className="border-t border-slate-200 pt-4 space-y-3">
                             <div className="flex items-center justify-between">
-                              <span className="block text-[10px] uppercase font-bold text-slate-400">AI Resume Screening</span>
+                              <span className="block text-[10px] uppercase font-semibold text-slate-600">AI Resume Screening</span>
                               {screening && (screening.status === "pending" || screening.status === "processing") && (
                                 <button
                                   onClick={() => fetchScreeningResult(selectedApp.id)}
@@ -1202,15 +1200,15 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                         <span className="text-lg font-black text-indigo-700">{screening.overall_score}%</span>
                                       </div>
                                       <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-center">
-                                        <span className="block text-[9px] uppercase font-bold text-slate-400">Skills Score</span>
+                                        <span className="block text-[9px] uppercase font-semibold text-slate-600">Skills Score</span>
                                         <span className="text-base font-bold text-slate-800">{screening.skills_score}/100</span>
                                       </div>
                                       <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-center">
-                                        <span className="block text-[9px] uppercase font-bold text-slate-400">Experience</span>
+                                        <span className="block text-[9px] uppercase font-semibold text-slate-600">Experience</span>
                                         <span className="text-base font-bold text-slate-800">{screening.experience_score}/100</span>
                                       </div>
                                       <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-center">
-                                        <span className="block text-[9px] uppercase font-bold text-slate-400">Education</span>
+                                        <span className="block text-[9px] uppercase font-semibold text-slate-600">Education</span>
                                         <span className="text-base font-bold text-slate-800">{screening.education_score}/100</span>
                                       </div>
                                     </div>
@@ -1218,8 +1216,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                     {/* AI Reasoning Summary */}
                                     {screening.reasoning && (
                                       <div className="space-y-1 bg-slate-50/50 p-3 rounded-lg border border-slate-100">
-                                        <span className="block text-[9px] uppercase font-bold text-slate-400">AI Evaluation Reasoning</span>
-                                        <p className="text-[11px] text-slate-650 leading-relaxed font-normal">{screening.reasoning}</p>
+                                        <span className="block text-[9px] uppercase font-semibold text-slate-600">AI Evaluation Reasoning</span>
+                                        <p className="text-[11px] text-slate-800 leading-relaxed font-normal">{screening.reasoning}</p>
                                       </div>
                                     )}
 
@@ -1238,7 +1236,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                             ))}
                                           </ul>
                                         ) : (
-                                          <span className="text-[10px] text-slate-400 block font-medium italic">No specific strengths listed.</span>
+                                          <span className="text-[10px] text-slate-500 block font-medium italic">No specific strengths listed.</span>
                                         )}
                                       </div>
 
@@ -1255,12 +1253,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                             ))}
                                           </ul>
                                         ) : (
-                                          <span className="text-[10px] text-slate-400 block font-medium italic">No concerns identified.</span>
+                                          <span className="text-[10px] text-slate-500 block font-medium italic">No concerns identified.</span>
                                         )}
                                       </div>
                                     </div>
 
-                                    <div className="text-[10px] text-slate-400 leading-normal border-t border-slate-100 pt-2 flex items-center gap-1 justify-center">
+                                    <div className="text-[10px] text-slate-500 leading-normal border-t border-slate-100 pt-2 flex items-center gap-1 justify-center">
                                       <span>ℹ</span>
                                       <span className="font-semibold italic">Screening results are advisory-only soft heuristics. All final decisions are manual.</span>
                                     </div>
@@ -1284,7 +1282,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                               </div>
                               <div>
                                 <h4 className="text-xs font-bold text-slate-800">Resume Attachment</h4>
-                                <p className="text-[10px] text-slate-400 truncate max-w-[200px]">
+                                <p className="text-[10px] text-slate-500 truncate max-w-[200px]">
                                   Key: {selectedApp.resume_storage_key}
                                 </p>
                               </div>
