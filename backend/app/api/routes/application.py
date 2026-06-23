@@ -5,7 +5,7 @@ from app.repositories.application import ApplicationRepository
 from app.services.candidate import CandidateService
 from app.services.storage import S3StorageService
 from app.schemas.candidate import ApplicationHRResponse
-from app.schemas.screening import ScreeningResultResponse
+from app.schemas.screening import ScreeningResultResponse, LinkedInAssessmentUpdate, CombinedScoreResponse
 from app.repositories.screening import ScreeningRepository
 from app.models.user import User
 
@@ -74,4 +74,63 @@ async def get_application_screening(
             detail=f"Screening result for application ID {application_id} not found."
         )
     return screening
+
+
+@router.put("/{application_id}/linkedin-assessment", response_model=ScreeningResultResponse)
+async def update_linkedin_assessment(
+    application_id: int,
+    schema: LinkedInAssessmentUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update the LinkedIn manual assessment metrics for an application. Protected route.
+    
+    Validates parameter inputs, updates the screening model, and returns updated details.
+    """
+    from app.services.screening import ScreeningService
+    service = ScreeningService(db)
+    try:
+        updated_screening = await service.update_linkedin_assessment(application_id, schema)
+        return updated_screening
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update LinkedIn manual assessment: {str(e)}"
+        )
+
+
+@router.get("/{application_id}/combined-score", response_model=CombinedScoreResponse)
+async def get_combined_score(
+    application_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve dynamic combined match score and contributions. Protected route.
+    
+    Applies weight normalization when components are missing and returns score details.
+    """
+    screening_repo = ScreeningRepository(db)
+    screening = await screening_repo.get_by_application_id(application_id)
+    if not screening:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Screening record for application ID {application_id} not found."
+        )
+
+    from app.services.screening import ScreeningService
+    service = ScreeningService(db)
+    try:
+        breakdown = service.calculate_combined_score(screening)
+        return breakdown
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to compute combined score: {str(e)}"
+        )
+
 

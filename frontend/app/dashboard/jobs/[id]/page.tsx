@@ -86,8 +86,28 @@ interface ScreeningResult {
   reasoning: string | null;
   strengths: string[] | null;
   concerns: string[] | null;
+  linkedin_manual_score: number | null;
+  linkedin_notes: string | null;
+  linkedin_status: string;
+  github_consistency_score: number | null;
+  github_reasoning: string | null;
+  github_status: string;
   created_at: string;
   updated_at: string;
+}
+
+interface CombinedScore {
+  application_id: number;
+  cv_score: number | null;
+  github_score: number | null;
+  linkedin_score: number | null;
+  cv_contribution: number;
+  github_contribution: number;
+  linkedin_contribution: number;
+  combined_score: number | null;
+  original_weights: { [key: string]: number };
+  effective_weights: { [key: string]: number };
+  missing_components: string[];
 }
 
 
@@ -117,6 +137,17 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [screening, setScreening] = useState<ScreeningResult | null>(null);
   const [loadingScreening, setLoadingScreening] = useState(false);
   const [screeningError, setScreeningError] = useState<string | null>(null);
+
+  // Combined matching states
+  const [combinedScore, setCombinedScore] = useState<CombinedScore | null>(null);
+  const [loadingCombined, setLoadingCombined] = useState(false);
+  const [combinedError, setCombinedError] = useState<string | null>(null);
+
+  // LinkedIn manual assessment input states
+  const [linkedinScoreInput, setLinkedinScoreInput] = useState<number | "">("");
+  const [linkedinStatusInput, setLinkedinStatusInput] = useState<string>("unchecked");
+  const [linkedinNotesInput, setLinkedinNotesInput] = useState<string>("");
+  const [savingLinkedin, setSavingLinkedin] = useState(false);
 
   // Fetch applications list from database via the protected endpoint
   const fetchApplications = useCallback(async () => {
@@ -160,16 +191,79 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     }
   }, []);
 
+  // Fetch combined score details for the selected application
+  const fetchCombinedScore = useCallback(async (appId: number) => {
+    setLoadingCombined(true);
+    setCombinedError(null);
+    try {
+      const response = await api.get<CombinedScore>(`/applications/${appId}/combined-score`);
+      setCombinedScore(response.data);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err);
+      setCombinedScore(null);
+      setCombinedError(
+        err.response?.data?.detail || "Failed to retrieve combined score breakdown."
+      );
+    } finally {
+      setLoadingCombined(false);
+    }
+  }, []);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
   // Fetch screening results when a new candidate is selected or tab is switched
   useEffect(() => {
     if (selectedAppId && activeTab === "applications" && mounted && user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchScreeningResult(selectedAppId);
+      fetchCombinedScore(selectedAppId);
     } else {
       setScreening(null);
       setScreeningError(null);
+      setCombinedScore(null);
+      setCombinedError(null);
     }
-  }, [selectedAppId, activeTab, mounted, user, fetchScreeningResult]);
+  }, [selectedAppId, activeTab, mounted, user, fetchScreeningResult, fetchCombinedScore]);
+
+  // Synchronize LinkedIn manual evaluation form states when candidate details load
+  useEffect(() => {
+    if (screening) {
+      setLinkedinScoreInput(screening.linkedin_manual_score !== null ? screening.linkedin_manual_score : "");
+      setLinkedinStatusInput(screening.linkedin_status || "unchecked");
+      setLinkedinNotesInput(screening.linkedin_notes || "");
+    } else {
+      setLinkedinScoreInput("");
+      setLinkedinStatusInput("unchecked");
+      setLinkedinNotesInput("");
+    }
+  }, [screening]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Save the HR manual LinkedIn assessment inputs
+  const handleSaveLinkedinAssessment = async () => {
+    if (!selectedAppId) return;
+    setSavingLinkedin(true);
+    setErrorMsg(null);
+    try {
+      const score = linkedinScoreInput === "" ? null : Number(linkedinScoreInput);
+      const payload = {
+        linkedin_manual_score: score,
+        linkedin_notes: linkedinNotesInput,
+        linkedin_status: linkedinStatusInput
+      };
+      await api.put(`/applications/${selectedAppId}/linkedin-assessment`, payload);
+      // Re-fetch screening result and combined score to refresh the screen
+      await fetchScreeningResult(selectedAppId);
+      await fetchCombinedScore(selectedAppId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(
+        err.response?.data?.detail || "Failed to save LinkedIn manual assessment."
+      );
+    } finally {
+      setSavingLinkedin(false);
+    }
+  };
 
   // Load applications whenever Applications tab becomes active
   useEffect(() => {
@@ -836,6 +930,188 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                 </span>
                               )}
                             </div>
+                          </div>
+
+                          {/* Dynamic Combined Match Index Card */}
+                          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs select-text">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                              <span className="block text-[10px] uppercase font-bold text-slate-500">Combined Match Index</span>
+                              <span className="inline-flex items-center gap-1 text-[9px] text-indigo-500 font-bold bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider select-none">
+                                Advisory-Only
+                              </span>
+                            </div>
+
+                            {loadingCombined ? (
+                              <div className="flex items-center justify-center py-4 gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                                <span className="text-xs text-slate-400 font-medium">Calculating dynamic match...</span>
+                              </div>
+                            ) : combinedError ? (
+                              <p className="text-xs text-rose-500 font-medium">{combinedError}</p>
+                            ) : combinedScore ? (
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                                  <div className="h-16 w-16 rounded-full bg-slate-900 flex flex-col items-center justify-center text-white shrink-0 shadow-xs select-none">
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight -mb-1">Score</span>
+                                    <span className="text-lg font-black">{combinedScore.combined_score !== null ? `${combinedScore.combined_score}%` : "N/A"}</span>
+                                  </div>
+                                  <div className="space-y-0.5">
+                                    <h4 className="text-xs font-bold text-slate-800">Dynamic Matching Score</h4>
+                                    <p className="text-[10px] text-slate-500 leading-normal font-medium">
+                                      Weighted dynamic index representing the overall match across evaluated components.
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Contributions progress bars */}
+                                <div className="space-y-3 pt-1">
+                                  <span className="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Contributions Summary</span>
+                                  
+                                  <div className="space-y-2.5">
+                                    {/* CV Match */}
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-700">
+                                        <span>CV Screening Score ({combinedScore.cv_score ?? "N/A"})</span>
+                                        <span className="text-slate-500">
+                                          {combinedScore.cv_contribution} pts / {Math.round(combinedScore.effective_weights.cv * 100)}% weight
+                                        </span>
+                                      </div>
+                                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                        <div 
+                                          className="h-full bg-indigo-650 rounded-full transition-all duration-500" 
+                                          style={{ width: `${combinedScore.cv_score ?? 0}%` }}
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* LinkedIn Manual */}
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-700">
+                                        <span>LinkedIn manual check ({combinedScore.linkedin_score ?? "N/A"})</span>
+                                        <span className="text-slate-500">
+                                          {combinedScore.linkedin_contribution} pts / {Math.round(combinedScore.effective_weights.linkedin * 100)}% weight
+                                        </span>
+                                      </div>
+                                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                        <div 
+                                          className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
+                                          style={{ width: `${combinedScore.linkedin_score ?? 0}%` }}
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* GitHub Placeholder */}
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-700">
+                                        <span>GitHub consistency check ({combinedScore.github_score ?? "N/A"})</span>
+                                        <span className="text-slate-500">
+                                          {combinedScore.github_contribution} pts / {Math.round(combinedScore.effective_weights.github * 100)}% weight
+                                        </span>
+                                      </div>
+                                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                        <div 
+                                          className="h-full bg-amber-500 rounded-full transition-all duration-500" 
+                                          style={{ width: `${combinedScore.github_score ?? 0}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Component missing notifications */}
+                                {combinedScore.missing_components.length > 0 && (
+                                  <div className="bg-amber-50/50 border border-amber-100 rounded-lg p-3 text-[10px] text-amber-800 space-y-1 leading-normal">
+                                    <div className="font-bold flex items-center gap-1 select-none">
+                                      <span>⚠</span> Excluded assessment parameters
+                                    </div>
+                                    <p className="font-medium">
+                                      We redistribution weight away from: <span className="font-bold uppercase">{combinedScore.missing_components.join(", ")}</span> due to pending or unavailable evaluations. Missing checks do not lower the final rating index.
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center">
+                                <span className="text-xs text-slate-450 italic">Combined score calculation unavailable.</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* LinkedIn Manual Assessment Form */}
+                          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs">
+                            <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+                              <span className="block text-[10px] uppercase font-bold text-slate-500">LinkedIn manual evaluation</span>
+                              <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 text-[9px] font-bold text-slate-650 border border-slate-200 uppercase tracking-tight select-none">
+                                HR Assessment
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                  Manual Score (0 - 100)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  placeholder="Enter score 0-100"
+                                  value={linkedinScoreInput}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "") {
+                                      setLinkedinScoreInput("");
+                                    } else {
+                                      const num = Number(val);
+                                      if (num >= 0 && num <= 100) {
+                                        setLinkedinScoreInput(num);
+                                      }
+                                    }
+                                  }}
+                                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:border-slate-500 focus:outline-hidden"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                  Verification Status
+                                </label>
+                                <select
+                                  value={linkedinStatusInput}
+                                  onChange={(e) => setLinkedinStatusInput(e.target.value)}
+                                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:border-slate-500 focus:outline-hidden"
+                                >
+                                  <option value="unchecked">Unchecked</option>
+                                  <option value="verified">Verified Profile</option>
+                                  <option value="weak">Weak profile fit</option>
+                                  <option value="red_flag">Red Flag</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                Assessment Notes
+                              </label>
+                              <textarea
+                                placeholder="HR observations, candidate endorsements, red flags, or background details..."
+                                rows={3}
+                                value={linkedinNotesInput}
+                                onChange={(e) => setLinkedinNotesInput(e.target.value)}
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-slate-500 focus:outline-hidden leading-relaxed"
+                              />
+                            </div>
+
+                            <button
+                              onClick={handleSaveLinkedinAssessment}
+                              disabled={savingLinkedin}
+                              className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg px-4 py-2.5 text-xs font-bold transition-all shadow-xs cursor-pointer select-none"
+                            >
+                              {savingLinkedin ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : null}
+                              <span>{savingLinkedin ? "Saving..." : "Save LinkedIn Evaluation"}</span>
+                            </button>
                           </div>
 
                           {/* AI Resume Screening Section */}

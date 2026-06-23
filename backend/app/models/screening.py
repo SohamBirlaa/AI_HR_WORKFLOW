@@ -35,6 +35,16 @@ class ScreeningResult(Base):
     reasoning: Mapped[str | None] = mapped_column(Text, nullable=True)
     strengths: Mapped[list | None] = mapped_column(JSON, nullable=True)
     concerns: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    # LinkedIn manual assessment fields
+    linkedin_manual_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    linkedin_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    linkedin_status: Mapped[str] = mapped_column(String(50), default="unchecked", server_default="unchecked", nullable=False)
+
+    # GitHub check placeholder fields
+    github_consistency_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    github_reasoning: Mapped[str | None] = mapped_column(Text, nullable=True)
+    github_status: Mapped[str] = mapped_column(String(50), default="not_checked", server_default="not_checked", nullable=False)
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -48,3 +58,4 @@ class ScreeningResult(Base):
 
     # Relationship back to application
     application = relationship("Application", back_populates="screening_result")
+

@@ -224,6 +224,105 @@ class ScreeningService:
 
         return result
 
+    async def update_linkedin_assessment(self, application_id: int, schema) -> ScreeningResult:
+        """Updates the LinkedIn manual assessment metrics for a candidate application.
+        
+        Stores manually entered ratings, observations, and status. Raises ValueError
+        if no screening profile exists yet.
+        """
+        screening = await self.screening_repo.get_by_application_id(application_id)
+        if not screening:
+            raise ValueError(f"No screening record found for application ID {application_id}.")
+
+        screening.linkedin_manual_score = schema.linkedin_manual_score
+        screening.linkedin_notes = schema.linkedin_notes
+        screening.linkedin_status = schema.linkedin_status
+
+        updated_screening = await self.screening_repo.update(screening)
+        logger.info(f"LinkedIn manual assessment updated for application {application_id}")
+        return updated_screening
+
+    def calculate_combined_score(self, screening: ScreeningResult) -> dict:
+        """Calculates the combined matching score and component-wise contributions.
+        
+        Applies dynamic weight normalization ONLY when components are missing.
+        Weights: CV Match (70%), GitHub (15%), LinkedIn Manual (15%).
+        """
+        original_weights = {
+            "cv": 0.70,
+            "github": 0.15,
+            "linkedin": 0.15
+        }
+
+        cv_score = screening.overall_score
+        github_score = screening.github_consistency_score
+        linkedin_score = screening.linkedin_manual_score
+
+        missing_components = []
+        active_components = {}
+
+        if cv_score is not None:
+            active_components["cv"] = cv_score
+        else:
+            missing_components.append("cv")
+
+        if github_score is not None:
+            active_components["github"] = github_score
+        else:
+            missing_components.append("github")
+
+        if linkedin_score is not None:
+            active_components["linkedin"] = linkedin_score
+        else:
+            missing_components.append("linkedin")
+
+        # Dynamic weight normalization: if components are missing, redistribute weight
+        # proportionally among the active ones so they sum up to 100% (1.0).
+        if missing_components:
+            total_active_weight = sum(original_weights[comp] for comp in active_components)
+            if total_active_weight > 0:
+                effective_weights = {
+                    comp: round(original_weights[comp] / total_active_weight, 4)
+                    for comp in original_weights
+                }
+                # Missing components get zero effective weight
+                for comp in missing_components:
+                    effective_weights[comp] = 0.0
+            else:
+                effective_weights = {comp: 0.0 for comp in original_weights}
+        else:
+            effective_weights = original_weights.copy()
+
+        # Compute point contributions based on active status and effective weight
+        cv_contrib = cv_score * effective_weights["cv"] if cv_score is not None else 0.0
+        github_contrib = github_score * effective_weights["github"] if github_score is not None else 0.0
+        linkedin_contrib = linkedin_score * effective_weights["linkedin"] if linkedin_score is not None else 0.0
+
+        cv_contribution = round(cv_contrib, 2)
+        github_contribution = round(github_contrib, 2)
+        linkedin_contribution = round(linkedin_contrib, 2)
+
+        # Sum the rounded contributions to calculate the overall combined score
+        if active_components:
+            combined_score = round(cv_contribution + github_contribution + linkedin_contribution, 2)
+        else:
+            combined_score = None
+
+        return {
+            "application_id": screening.application_id,
+            "cv_score": cv_score,
+            "github_score": github_score,
+            "linkedin_score": linkedin_score,
+            "cv_contribution": cv_contribution,
+            "github_contribution": github_contribution,
+            "linkedin_contribution": linkedin_contribution,
+            "combined_score": combined_score,
+            "original_weights": original_weights,
+            "effective_weights": effective_weights,
+            "missing_components": missing_components
+        }
+
 def get_screening_service_from_session(db: AsyncSession) -> ScreeningService:
     """Helper method to construct a ScreeningService from an active session."""
     return ScreeningService(db)
+
