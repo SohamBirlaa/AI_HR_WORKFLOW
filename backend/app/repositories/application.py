@@ -38,3 +38,31 @@ class ApplicationRepository:
         await self.db.commit()
         await self.db.refresh(application)
         return application
+
+    async def get_by_job_id(self, job_id: int) -> list[Application]:
+        """Fetch all applications for a specific job opening, eager loading related Candidate profiles.
+        
+        Using joinedload is critical to fetch the related candidate records eagerly in one SQL join query,
+        preventing LazyLoadingAttributeError exceptions during asynchronous response serialization.
+        """
+        from sqlalchemy.orm import joinedload
+        result = await self.db.execute(
+            select(Application)
+            .options(joinedload(Application.candidate))
+            .where(Application.job_id == job_id)
+            .order_by(Application.applied_at.desc())
+        )
+        return list(result.scalars().all())
+
+    async def get_by_id_with_details(self, application_id: int) -> Optional[Application]:
+        """Fetch a specific job application by ID, eager loading both Candidate and Job relationships.
+        
+        Using joinedload ensures all relational details are fully hydrated on return.
+        """
+        from sqlalchemy.orm import joinedload
+        result = await self.db.execute(
+            select(Application)
+            .options(joinedload(Application.candidate), joinedload(Application.job))
+            .where(Application.id == application_id)
+        )
+        return result.scalars().first()

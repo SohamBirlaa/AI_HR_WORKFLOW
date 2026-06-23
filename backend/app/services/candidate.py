@@ -1,11 +1,11 @@
-from typing import Optional
+from typing import Optional, List
 from app.repositories.candidate import CandidateRepository
 from app.repositories.application import ApplicationRepository
 from app.repositories.job import JobRepository
 from app.models.candidate import Candidate
 from app.models.application import Application, ApplicationStatus
 from app.models.job import JobStatus
-from app.schemas.candidate import CandidateCreate
+from app.schemas.candidate import CandidateCreate, CandidateResponse, ApplicationHRResponse
 from app.services.storage_base import BaseStorageService
 
 class CandidateService:
@@ -94,3 +94,67 @@ class CandidateService:
             application = await application_repo.create(application)
 
         return application
+
+    @staticmethod
+    async def get_applications_by_job(
+        application_repo: ApplicationRepository,
+        job_repo: JobRepository,
+        storage_service: BaseStorageService,
+        job_id: int
+    ) -> List[ApplicationHRResponse]:
+        """Fetch all applications for a specific job, eager loading candidates and assembling the response schemas.
+        
+        Assembles ApplicationHRResponse objects, inserting temporary presigned resume URLs
+        without modifying or persisting dynamic properties on the core SQL database models.
+        """
+        job = await job_repo.get_by_id(job_id)
+        if not job:
+            raise ValueError(f"Job posting with ID {job_id} was not found.")
+
+        applications = await application_repo.get_by_job_id(job_id)
+
+        response = []
+        for app in applications:
+            # Generate temporary secure presigned download url
+            url = storage_service.get_resume_download_url(app.resume_storage_key)
+            response.append(
+                ApplicationHRResponse(
+                    id=app.id,
+                    candidate_id=app.candidate_id,
+                    job_id=app.job_id,
+                    resume_storage_key=app.resume_storage_key,
+                    consent_given=app.consent_given,
+                    status=app.status,
+                    applied_at=app.applied_at,
+                    updated_at=app.updated_at,
+                    candidate=CandidateResponse.model_validate(app.candidate),
+                    resume_download_url=url
+                )
+            )
+        return response
+
+    @staticmethod
+    async def get_application_by_id(
+        application_repo: ApplicationRepository,
+        storage_service: BaseStorageService,
+        application_id: int
+    ) -> Optional[ApplicationHRResponse]:
+        """Fetch details of a single application by ID, eager loading candidate info and appending download URL."""
+        app = await application_repo.get_by_id_with_details(application_id)
+        if not app:
+            return None
+
+        # Generate temporary secure presigned download url
+        url = storage_service.get_resume_download_url(app.resume_storage_key)
+        return ApplicationHRResponse(
+            id=app.id,
+            candidate_id=app.candidate_id,
+            job_id=app.job_id,
+            resume_storage_key=app.resume_storage_key,
+            consent_given=app.consent_given,
+            status=app.status,
+            applied_at=app.applied_at,
+            updated_at=app.updated_at,
+            candidate=CandidateResponse.model_validate(app.candidate),
+            resume_download_url=url
+        )

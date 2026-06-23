@@ -5,6 +5,7 @@ from app.api.dependencies import get_db, get_current_user
 from app.repositories.job import JobRepository
 from app.services.job import JobService
 from app.schemas.job import JobCreate, JobUpdate, JobResponse
+from app.schemas.candidate import ApplicationHRResponse
 from app.models.user import User
 
 from app.llm.factory import LLMProviderFactory
@@ -195,4 +196,42 @@ async def publish_job(
             detail=f"Job with ID {id} not found"
         )
     return job
+
+@router.get("/{job_id}/applications", response_model=List[ApplicationHRResponse])
+async def list_job_applications(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve all candidate applications submitted for a job opening. Protected route.
+    
+    Checks JWT authentication, calls CandidateService to fetch eager-loaded applications,
+    and returns them enriched with secure presigned resume links.
+    """
+    from app.repositories.application import ApplicationRepository
+    from app.services.candidate import CandidateService
+    from app.services.storage import S3StorageService
+    
+    application_repo = ApplicationRepository(db)
+    job_repo = JobRepository(db)
+    storage_service = S3StorageService()
+    
+    try:
+        applications = await CandidateService.get_applications_by_job(
+            application_repo=application_repo,
+            job_repo=job_repo,
+            storage_service=storage_service,
+            job_id=job_id
+        )
+        return applications
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve job applications: {str(e)}"
+        )
 

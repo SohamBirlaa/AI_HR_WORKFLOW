@@ -50,3 +50,23 @@ class ApplicationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ApplicationHRResponse(BaseModel):
+    """Pydantic schema for detailed candidate application view within the HR review dashboard.
+    
+    Exposes nested candidate demographics and contact details, and contains a secure,
+    runtime-generated presigned download link for the applicant's resume.
+    """
+    id: int
+    candidate_id: int
+    job_id: int
+    resume_storage_key: str
+    consent_given: bool
+    status: ApplicationStatus
+    applied_at: datetime
+    updated_at: datetime
+    candidate: CandidateResponse
+    resume_download_url: Optional[str] = None
+
+    class Config:
+        from_attributes = True

@@ -51,6 +51,30 @@ interface SocialContentBundle {
   visual_location: string;
 }
 
+interface Candidate {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  linkedin_url?: string;
+  github_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Application {
+  id: number;
+  candidate_id: number;
+  job_id: number;
+  resume_storage_key: string;
+  consent_given: boolean;
+  status: string;
+  applied_at: string;
+  updated_at: string;
+  candidate: Candidate;
+  resume_download_url?: string;
+}
+
 export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: jobIdStr } = use(params);
   const jobId = parseInt(jobIdStr, 10);
@@ -64,8 +88,45 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
-  const [activeTab, setActiveTab] = useState<"overview" | "polished" | "social">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "polished" | "social" | "applications">("overview");
   const [socialContent, setSocialContent] = useState<SocialContentBundle | null>(null);
+
+  // Candidate review dashboard states
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
+  const [loadingApps, setLoadingApps] = useState(false);
+  const [appsError, setAppsError] = useState<string | null>(null);
+
+  // Fetch applications list from database via the protected endpoint
+  const fetchApplications = useCallback(async () => {
+    setLoadingApps(true);
+    setAppsError(null);
+    try {
+      const response = await api.get<Application[]>(`/jobs/${jobId}/applications`);
+      setApplications(response.data);
+      if (response.data.length > 0) {
+        setSelectedAppId(response.data[0].id);
+      } else {
+        setSelectedAppId(null);
+      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err);
+      setAppsError(
+        err.response?.data?.detail || "Failed to load candidate applications."
+      );
+    } finally {
+      setLoadingApps(false);
+    }
+  }, [jobId]);
+
+  // Load applications whenever Applications tab becomes active
+  useEffect(() => {
+    if (activeTab === "applications" && mounted && user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchApplications();
+    }
+  }, [activeTab, fetchApplications, mounted, user]);
 
   // Set mounted state
   useEffect(() => {
@@ -393,6 +454,16 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           >
             Social Content
           </button>
+          <button
+            onClick={() => setActiveTab("applications")}
+            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+              activeTab === "applications"
+                ? "border-slate-900 text-slate-900"
+                : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200"
+            }`}
+          >
+            Applications
+          </button>
         </div>
 
         {/* Tab Content Display Workspace */}
@@ -573,6 +644,174 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                       <span>{actionLoading === "generate-social-content" ? "Generating..." : "Generate Promotional Content"}</span>
                     </button>
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Applications Tab */}
+          {activeTab === "applications" && (
+            <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+              {loadingApps ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-700" />
+                  <p className="text-sm font-medium text-slate-500">Loading submitted applications...</p>
+                </div>
+              ) : appsError ? (
+                <div className="p-8 text-center space-y-2">
+                  <AlertCircle className="h-10 w-10 text-rose-500 mx-auto" />
+                  <p className="text-sm font-semibold text-slate-800">Error Loading Applications</p>
+                  <p className="text-xs text-rose-605 font-medium">{appsError}</p>
+                </div>
+              ) : applications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center px-4">
+                  <User className="h-10 w-10 mb-3 text-slate-300" />
+                  <p className="text-base font-bold text-slate-800">No Applications Submitted</p>
+                  <p className="text-xs mt-1 text-slate-500 max-w-sm">
+                    No candidates have submitted applications for this job opening yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-200 min-h-[500px]">
+                  {/* Left Column: Applications List (2/5) */}
+                  <div className="md:col-span-2 divide-y divide-slate-100 overflow-y-auto max-h-[600px]">
+                    {applications.map((app) => {
+                      const isSelected = selectedAppId === app.id;
+                      return (
+                        <div
+                          key={app.id}
+                          onClick={() => setSelectedAppId(app.id)}
+                          className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors ${
+                            isSelected ? "bg-slate-50 border-l-4 border-slate-900 pl-3" : ""
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-start gap-2">
+                              <h4 className="text-sm font-bold text-slate-900 truncate">{app.candidate.name}</h4>
+                              <span className="shrink-0 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 capitalize">
+                                {app.status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate">{app.candidate.email}</p>
+                            <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
+                              <span>Applied {new Date(app.applied_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Right Column: Candidate Detail View (3/5) */}
+                  <div className="md:col-span-3 p-6 bg-slate-50/30 flex flex-col justify-between max-h-[600px] overflow-y-auto">
+                    {(() => {
+                      const selectedApp = applications.find((a) => a.id === selectedAppId);
+                      if (!selectedApp) {
+                        return (
+                          <div className="h-full flex flex-col items-center justify-center text-slate-400 py-20">
+                            <User className="h-12 w-12 mb-2 text-slate-300" />
+                            <p className="text-sm font-bold text-slate-800">Select a Candidate</p>
+                            <p className="text-xs text-slate-500">Choose a candidate from the list to review their contact information, social links, and resume.</p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="space-y-6">
+                          {/* Candidate Header */}
+                          <div className="border-b border-slate-200 pb-4 space-y-1">
+                            <h3 className="text-lg font-extrabold text-slate-900 select-text">{selectedApp.candidate.name}</h3>
+                            <p className="text-xs font-semibold text-slate-400">Application ID: {selectedApp.id}</p>
+                          </div>
+
+                          {/* Candidate Info Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <span className="block text-[10px] uppercase font-bold text-slate-400">Email Address</span>
+                              <a href={`mailto:${selectedApp.candidate.email}`} className="text-sm font-semibold text-slate-800 hover:text-indigo-600 hover:underline select-text">
+                                {selectedApp.candidate.email}
+                              </a>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] uppercase font-bold text-slate-400">Phone Number</span>
+                              <span className="text-sm font-semibold text-slate-800 select-text">
+                                {selectedApp.candidate.phone}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] uppercase font-bold text-slate-400">Applied Date</span>
+                              <span className="text-sm font-semibold text-slate-800 select-text">
+                                {new Date(selectedApp.applied_at).toLocaleString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] uppercase font-bold text-slate-400">Consent Given</span>
+                              <span className="text-sm font-semibold text-emerald-600 select-text">
+                                Yes, Consent Agreed
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Social Profiles */}
+                          <div className="space-y-2">
+                            <span className="block text-[10px] uppercase font-bold text-slate-400">Professional Links</span>
+                            <div className="flex flex-wrap gap-3">
+                              {selectedApp.candidate.linkedin_url ? (
+                                <a
+                                  href={selectedApp.candidate.linkedin_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
+                                >
+                                  LinkedIn
+                                </a>
+                              ) : (
+                                <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-400 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
+                                  No LinkedIn Provided
+                                </span>
+                              )}
+                              {selectedApp.candidate.github_url ? (
+                                <a
+                                  href={selectedApp.candidate.github_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
+                                >
+                                  GitHub
+                                </a>
+                              ) : (
+                                <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-400 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
+                                  No GitHub Provided
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Resume Access Section */}
+                          <div className="bg-slate-100/50 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                                <FileText className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-slate-800">Resume Attachment</h4>
+                                <p className="text-[10px] text-slate-400 truncate max-w-[200px]">
+                                  Key: {selectedApp.resume_storage_key}
+                                </p>
+                              </div>
+                            </div>
+                            <a
+                              href={selectedApp.resume_download_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center rounded-lg bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none text-center"
+                            >
+                              Download Resume
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
             </div>
