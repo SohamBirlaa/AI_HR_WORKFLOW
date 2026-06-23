@@ -4,6 +4,7 @@ from app.core.config import settings
 from app.api.routes.auth import router as auth_router
 from app.api.routes.job import router as job_router
 from app.api.routes.social_asset import router as social_asset_router
+from app.api.routes.public import router as public_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -15,7 +16,7 @@ app = FastAPI(
 # Set up CORS middleware to allow requests from the frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],  # Allow public origins to access vacancy browsing
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(job_router, prefix="/api/v1")
 app.include_router(social_asset_router, prefix="/api/v1")
+app.include_router(public_router, prefix="/api/v1")
 
 # API v1 Health Check Endpoint
 @app.get("/api/v1/health", tags=["health"])

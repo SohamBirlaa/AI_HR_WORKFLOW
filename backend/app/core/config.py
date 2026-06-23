@@ -20,6 +20,14 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-3.5-flash"
     LLM_TIMEOUT: float = 30.0
 
+    # Storage settings
+    STORAGE_PROVIDER: str = "s3"
+    S3_ENDPOINT_URL: Optional[str] = None
+    S3_ACCESS_KEY: Optional[str] = None
+    S3_SECRET_KEY: Optional[str] = None
+    S3_BUCKET_NAME: str = "ai-hr-resumes"
+    S3_REGION: str = "us-east-1"
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         env_file_encoding="utf-8",

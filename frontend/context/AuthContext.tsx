@@ -4,6 +4,39 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import Cookies from "js-cookie";
 import api from "@/lib/api";
 
+/**
+ * Checks if a JWT token has expired or is malformed client-side.
+ * This prevents making unnecessary API calls to /auth/me that would result in 401 network errors in the browser console.
+ */
+function isTokenExpired(token: string): boolean {
+  if (!token || token === "undefined" || token === "null") {
+    return true;
+  }
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      return true; // Malformed JWT
+    }
+    // Base64URL decode the payload segment
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const payload = JSON.parse(jsonPayload);
+    // exp is represented as a Unix timestamp in seconds
+    if (payload.exp && Date.now() / 1000 > payload.exp) {
+      return true; // Token has expired
+    }
+    return false; // Token is valid
+  } catch {
+    return true; // Any error decoding means token is invalid
+  }
+}
+
 interface User {
   id: number;
   email: string;
@@ -24,11 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Store details of the currently authenticated User profile
   const [user, setUser] = useState<User | null>(null);
   
-  // Set initial loading state to true on mount if the 'auth_token' cookie exists
-  // this prevents flashes of unauthenticated content during app boot
+  // Set initial loading state to true on mount if a valid, non-expired 'auth_token' cookie exists.
+  // This prevents flashes of unauthenticated content during app boot on protected pages.
   const [loading, setLoading] = useState<boolean>(() => {
-    // Check token presence immediately to set loading state on mount
-    return typeof window !== "undefined" && !!Cookies.get("auth_token");
+    if (typeof window === "undefined") return false;
+    const token = Cookies.get("auth_token");
+    return !!token && !isTokenExpired(token);
   });
 
   // Fetch the authenticated user profile data from /auth/me using the stored cookie
@@ -36,8 +70,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await api.get<User>("/auth/me");
       setUser(response.data);
-    } catch (error) {
-      console.error("Failed to fetch current user:", error);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      // Silently handle expected 401 Unauthorized status (e.g., expired session or unauthenticated public view)
+      if (error?.response?.status !== 401) {
+        console.error("Failed to fetch current user:", error);
+      }
       // Clean up invalid or expired tokens
       Cookies.remove("auth_token");
       setUser(null);
@@ -46,14 +84,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Run the session verification once when the component mounts
+  // Run the session verification once when the component mounts.
+  // Validate token expiration client-side to prevent triggering 401 errors.
   useEffect(() => {
     const token = Cookies.get("auth_token");
     if (token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      loadUser();
+      if (isTokenExpired(token)) {
+        // Automatically clean up expired or malformed token
+        Cookies.remove("auth_token");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUser(null);
+        setLoading(false);
+      } else {
+        loadUser();
+      }
+    } else {
+      setLoading(false);
     }
-    // If no token, loading was initialized to false, so no action/render cycle is needed.
   }, [loadUser]);
 
   // Login handler: stores token in a Strict SameSite cookie and loads the user info
