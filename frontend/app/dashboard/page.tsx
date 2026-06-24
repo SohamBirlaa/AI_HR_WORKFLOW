@@ -2,15 +2,12 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { 
   LogOut, 
   User, 
   LayoutDashboard, 
-  FileText, 
-  Users, 
-  Settings, 
   Loader2, 
   Plus, 
   Briefcase, 
@@ -32,6 +29,7 @@ interface Job {
 export default function DashboardPage() {
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [mounted, setMounted] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -158,34 +156,15 @@ export default function DashboardPage() {
             <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-3 md:pb-0">
               <Link
                 href="/dashboard"
-                className="flex items-center gap-2.5 rounded-md bg-slate-200 px-3 py-2.5 text-sm font-medium text-slate-900"
+                className={`flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium transition-all ${
+                  pathname === "/dashboard" || pathname.startsWith("/dashboard/jobs")
+                    ? "bg-slate-200 text-slate-900"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                }`}
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                <FileText className="h-4 w-4" />
-                Job Openings
-              </Link>
-              <a
-                href="#"
-                className="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium text-slate-400 cursor-not-allowed"
-                onClick={(e) => e.preventDefault()}
-              >
-                <Users className="h-4 w-4" />
-                Candidates
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium text-slate-400 cursor-not-allowed"
-                onClick={(e) => e.preventDefault()}
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </a>
             </nav>
           </aside>
 
