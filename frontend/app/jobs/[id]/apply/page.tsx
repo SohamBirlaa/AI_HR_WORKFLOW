@@ -283,6 +283,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 }`}
                 placeholder="Jane Doe"
                 {...register("name")}
+                disabled={isSubmitting}
               />
               {errors.name && (
                 <p className="mt-1 text-xs text-rose-600 font-medium">{errors.name.message}</p>
@@ -304,6 +305,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                   }`}
                   placeholder="jane.doe@example.com"
                   {...register("email")}
+                  disabled={isSubmitting}
                 />
                 {errors.email && (
                   <p className="mt-1 text-xs text-rose-600 font-medium">{errors.email.message}</p>
@@ -323,6 +325,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                   }`}
                   placeholder="+1 (555) 019-2834"
                   {...register("phone")}
+                  disabled={isSubmitting}
                 />
                 {errors.phone && (
                   <p className="mt-1 text-xs text-rose-600 font-medium">{errors.phone.message}</p>
@@ -343,6 +346,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                   className="block w-full rounded-lg border border-slate-200 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs"
                   placeholder="https://linkedin.com/in/janedoe"
                   {...register("linkedin_url")}
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -357,6 +361,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                   className="block w-full rounded-lg border border-slate-200 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs"
                   placeholder="https://github.com/janedoe"
                   {...register("github_url")}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -367,7 +372,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 Upload Resume (PDF or DOCX only) <span className="text-rose-500">*</span>
               </label>
               
-              <div className="flex justify-center rounded-xl border border-dashed border-slate-300 px-6 py-6 transition-all hover:border-slate-400 bg-slate-50/50">
+              <div className={`flex justify-center rounded-xl border border-dashed border-slate-300 px-6 py-6 transition-all hover:border-slate-400 bg-slate-50/50 ${isSubmitting ? "opacity-50 pointer-events-none" : ""}`}>
                 <div className="space-y-1 text-center">
                   <UploadCloud className="mx-auto h-10 w-10 text-slate-400" />
                   <div className="flex justify-center text-xs text-slate-600 font-medium">
@@ -382,6 +387,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                         accept=".pdf,.docx"
                         className="sr-only"
                         onChange={handleFileChange}
+                        disabled={isSubmitting}
                       />
                     </label>
                     <p className="pl-1">or drag and drop</p>
@@ -415,8 +421,9 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 <input
                   id="consent_given"
                   type="checkbox"
-                  className="h-4 w-4 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  className="h-4 w-4 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   {...register("consent_given")}
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="ml-3 text-xs leading-relaxed">

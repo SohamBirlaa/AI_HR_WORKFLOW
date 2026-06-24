@@ -108,6 +108,7 @@ export default function LoginPage() {
                   }`}
                   placeholder="recruiter@company.com"
                   {...register("email")}
+                  disabled={isSubmitting}
                 />
               </div>
               {errors.email && (
@@ -132,6 +133,7 @@ export default function LoginPage() {
                   }`}
                   placeholder="••••••••"
                   {...register("password")}
+                  disabled={isSubmitting}
                 />
               </div>
               {errors.password && (
