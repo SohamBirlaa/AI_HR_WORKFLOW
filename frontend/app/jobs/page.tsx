@@ -119,7 +119,7 @@ export default function PublicJobsPage() {
             {filteredJobs.map((job) => (
               <div
                 key={job.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-350 transition-all shadow-xs gap-4 hover:shadow-sm"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-all shadow-xs gap-4 hover:shadow-sm"
               >
                 <div className="space-y-2.5">
                   <div className="space-y-1">

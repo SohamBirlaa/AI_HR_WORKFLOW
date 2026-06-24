@@ -793,7 +793,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                     <button
                       onClick={() => handleWorkflowAction("generate-social-content")}
                       disabled={!!actionLoading}
-                      className="inline-flex items-center gap-1.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 text-xs font-bold transition-all shadow-sm cursor-pointer"
+                      className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 text-xs font-bold transition-all shadow-sm cursor-pointer"
                     >
                       {actionLoading === "generate-social-content" ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -820,7 +820,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 <div className="p-8 text-center space-y-2">
                   <AlertCircle className="h-10 w-10 text-rose-500 mx-auto" />
                   <p className="text-sm font-semibold text-slate-800">Error Loading Applications</p>
-                  <p className="text-xs text-rose-605 font-medium">{appsError}</p>
+                  <p className="text-xs text-rose-600 font-medium">{appsError}</p>
                 </div>
               ) : applications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center px-4">
@@ -990,7 +990,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                       </div>
                                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                         <div
-                                          className="h-full bg-indigo-650 rounded-full transition-all duration-500"
+                                          className="h-full bg-indigo-600 rounded-full transition-all duration-500"
                                           style={{ width: `${combinedScore.cv_score ?? 0}%` }}
                                         />
                                       </div>
@@ -1037,14 +1037,14 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                       <span>⚠</span> Excluded assessment parameters
                                     </div>
                                     <p className="font-medium">
-                                      We redistribution weight away from: <span className="font-bold uppercase">{combinedScore.missing_components.join(", ")}</span> due to pending or unavailable evaluations. Missing checks do not lower the final rating index.
+                                      Weight redistributed away from: <span className="font-bold uppercase">{combinedScore.missing_components.join(", ")}</span> due to pending or unavailable evaluations. Missing checks do not lower the final rating index.
                                     </p>
                                   </div>
                                 )}
                               </div>
                             ) : (
                               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center">
-                                <span className="text-xs text-slate-450 italic">Combined score calculation unavailable.</span>
+                                <span className="text-xs text-slate-400 italic">Combined score calculation unavailable.</span>
                               </div>
                             )}
                           </div>
@@ -1053,7 +1053,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                           <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs">
                             <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
                               <span className="block text-[10px] uppercase font-semibold text-slate-600">LinkedIn manual evaluation</span>
-                              <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 text-[9px] font-bold text-slate-650 border border-slate-200 uppercase tracking-tight select-none">
+                              <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 border border-slate-200 uppercase tracking-tight select-none">
                                 HR Assessment
                               </span>
                             </div>
@@ -1131,7 +1131,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                               {screening && (screening.status === "pending" || screening.status === "processing") && (
                                 <button
                                   onClick={() => fetchScreeningResult(selectedApp.id)}
-                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-650 hover:text-indigo-850 transition-colors uppercase tracking-wider cursor-pointer"
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-wider cursor-pointer"
                                 >
                                   <Loader2 className="h-3 w-3 animate-spin" />
                                   <span>Syncing...</span>
@@ -1172,7 +1172,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                   <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-col items-center justify-center text-center py-6 space-y-2">
                                     <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
                                     <h4 className="text-xs font-bold text-indigo-900">Analysis In Progress</h4>
-                                    <p className="text-[10px] text-indigo-650 max-w-xs leading-normal">
+                                    <p className="text-[10px] text-indigo-600 max-w-xs leading-normal">
                                       The candidate&apos;s resume is currently being parsed and scored by the AI engine. This process runs in the background and takes up to 30 seconds.
                                     </p>
                                     <button
@@ -1186,11 +1186,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                                 {screening.status === "failed" && (
                                   <div className="bg-rose-50/60 border border-rose-100 rounded-xl p-4 space-y-2">
-                                    <div className="flex items-center gap-2 text-rose-850">
+                                    <div className="flex items-center gap-2 text-rose-800">
                                       <XCircle className="h-4 w-4 text-rose-500" />
                                       <h4 className="text-xs font-bold">Screening Evaluation Failed</h4>
                                     </div>
-                                    <p className="text-[11px] text-rose-650 leading-relaxed font-medium">
+                                    <p className="text-[11px] text-rose-600 leading-relaxed font-medium">
                                       {screening.reasoning || "The AI evaluation failed during text extraction or LLM completion."}
                                     </p>
                                     <button
@@ -1280,7 +1280,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                               </>
                             ) : (
                               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center gap-2">
-                                <span className="text-xs text-slate-450 italic">No screening data found. Click Refresh to synchronize.</span>
+                                <span className="text-xs text-slate-400 italic">No screening data found. Click Refresh to synchronize.</span>
                               </div>
                             )}
                           </div>
@@ -1290,12 +1290,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                             <div className="flex items-center justify-between">
                               <span className="block text-[10px] uppercase font-semibold text-slate-600">GitHub Consistency Check</span>
                               {screening && screening.github_status === "checked" && (
-                                <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-250 uppercase tracking-tight select-none">
+                                <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200 uppercase tracking-tight select-none">
                                   Checked
                                 </span>
                               )}
                               {screening && screening.github_status === "unavailable" && (
-                                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 border border-amber-250 uppercase tracking-tight select-none">
+                                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 border border-amber-200 uppercase tracking-tight select-none">
                                   Unavailable
                                 </span>
                               )}
@@ -1343,7 +1343,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                   <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
                                     <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
                                     <h4 className="text-xs font-bold text-indigo-900">Analysis In Progress</h4>
-                                    <p className="text-[10px] text-indigo-650 max-w-xs leading-normal">
+                                    <p className="text-[10px] text-indigo-600 max-w-xs leading-normal">
                                       We are fetching the candidate&apos;s repository lists, primary languages, and recent push events to analyze tech consistency.
                                     </p>
                                   </div>
@@ -1356,12 +1356,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                       <button
                                         onClick={() => triggerGithubCheck(selectedApp.id)}
                                         disabled={!selectedApp.candidate.github_url}
-                                        className="text-[10px] text-indigo-650 hover:text-indigo-850 font-bold uppercase tracking-wider disabled:hidden cursor-pointer"
+                                        className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold uppercase tracking-wider disabled:hidden cursor-pointer"
                                       >
                                         Re-run Check
                                       </button>
                                     </div>
-                                    <p className="text-[11px] text-slate-605 leading-relaxed font-medium">
+                                    <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
                                       {screening.github_reasoning || "Evaluation could not be performed for this candidate."}
                                     </p>
                                   </div>
@@ -1385,7 +1385,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                       </div>
                                       <button
                                         onClick={() => triggerGithubCheck(selectedApp.id)}
-                                        className="text-[10px] bg-white border border-emerald-250 text-emerald-700 hover:bg-emerald-50 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                        className="text-[10px] bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-all cursor-pointer"
                                       >
                                         Re-run
                                       </button>
@@ -1403,7 +1403,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                               </div>
                             ) : (
                               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center">
-                                <span className="text-xs text-slate-450 italic">No GitHub consistency data available.</span>
+                                <span className="text-xs text-slate-400 italic">No GitHub consistency data available.</span>
                               </div>
                             )}
                           </div>

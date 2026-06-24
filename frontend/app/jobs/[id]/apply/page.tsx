@@ -278,7 +278,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
               <input
                 id="name"
                 type="text"
-                className={`block w-full rounded-lg border border-slate-250 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs ${
+                className={`block w-full rounded-lg border border-slate-200 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs ${
                   errors.name ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500" : ""
                 }`}
                 placeholder="Jane Doe"
@@ -299,7 +299,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 <input
                   id="email"
                   type="email"
-                  className={`block w-full rounded-lg border border-slate-250 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs ${
+                  className={`block w-full rounded-lg border border-slate-200 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs ${
                     errors.email ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500" : ""
                   }`}
                   placeholder="jane.doe@example.com"
@@ -318,7 +318,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 <input
                   id="phone"
                   type="tel"
-                  className={`block w-full rounded-lg border border-slate-250 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs ${
+                  className={`block w-full rounded-lg border border-slate-200 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs ${
                     errors.phone ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500" : ""
                   }`}
                   placeholder="+1 (555) 019-2834"
@@ -340,7 +340,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 <input
                   id="linkedin_url"
                   type="url"
-                  className="block w-full rounded-lg border border-slate-250 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs"
+                  className="block w-full rounded-lg border border-slate-200 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs"
                   placeholder="https://linkedin.com/in/janedoe"
                   {...register("linkedin_url")}
                 />
@@ -354,7 +354,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 <input
                   id="github_url"
                   type="url"
-                  className="block w-full rounded-lg border border-slate-250 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs"
+                  className="block w-full rounded-lg border border-slate-200 py-2.5 px-3.5 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-2xs"
                   placeholder="https://github.com/janedoe"
                   {...register("github_url")}
                 />
@@ -415,7 +415,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                 <input
                   id="consent_given"
                   type="checkbox"
-                  className="h-4 w-4 rounded-md border-slate-350 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  className="h-4 w-4 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                   {...register("consent_given")}
                 />
               </div>
@@ -427,7 +427,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
                   I consent to the collection, processing, and storage of my personal contact details and resume history by recruiters for evaluation purposes.
                 </p>
                 {errors.consent_given && (
-                  <p className="mt-1 text-xs text-rose-605 font-semibold">{errors.consent_given.message}</p>
+                  <p className="mt-1 text-xs text-rose-600 font-semibold">{errors.consent_given.message}</p>
                 )}
               </div>
             </div>
