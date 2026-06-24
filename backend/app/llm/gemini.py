@@ -1,6 +1,13 @@
 import httpx
+import asyncio
 from typing import Optional
 from app.llm.base import BaseLLMProvider
+from app.llm.exceptions import (
+    LLMProviderError,
+    LLMTransientError,
+    LLMValidationError,
+    LLMAuthError
+)
 
 class GeminiProvider(BaseLLMProvider):
     """Gemini API wrapper implementing the BaseLLMProvider interface."""
@@ -58,14 +65,25 @@ class GeminiProvider(BaseLLMProvider):
                 
                 return text
             except httpx.HTTPStatusError as e:
-                detail = f"Gemini API returned status code {e.response.status_code}"
+                status_code = e.response.status_code
+                detail = f"Gemini API returned status code {status_code}"
                 try:
                     error_json = e.response.json()
                     detail += f": {error_json}"
                 except Exception:
                     detail += f": {e.response.text}"
-                raise RuntimeError(detail) from e
-            except httpx.TimeoutException as e:
-                raise TimeoutError("Gemini API request timed out") from e
+
+                if status_code in (429, 500, 502, 503, 504):
+                    raise LLMTransientError(detail) from e
+                elif status_code in (401, 403):
+                    raise LLMAuthError(detail) from e
+                elif status_code == 400:
+                    raise LLMValidationError(detail) from e
+                else:
+                    raise LLMProviderError(detail) from e
+            except (httpx.TimeoutException, TimeoutError, asyncio.TimeoutError) as e:
+                raise LLMTransientError("Gemini API request timed out") from e
+            except httpx.RequestError as e:
+                raise LLMTransientError(f"Gemini API request connection failed: {str(e)}") from e
             except Exception as e:
-                raise RuntimeError(f"Unexpected error communicating with Gemini API: {str(e)}") from e
+                raise LLMProviderError(f"Unexpected error communicating with Gemini API: {str(e)}") from e

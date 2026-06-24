@@ -99,6 +99,9 @@ class ScreeningService:
             screening.reasoning = None
             screening.strengths = None
             screening.concerns = None
+            screening.github_consistency_score = None
+            screening.github_reasoning = None
+            screening.github_status = "not_checked"
             screening = await self.screening_repo.update(screening)
 
         try:
@@ -241,6 +244,85 @@ class ScreeningService:
         updated_screening = await self.screening_repo.update(screening)
         logger.info(f"LinkedIn manual assessment updated for application {application_id}")
         return updated_screening
+
+    async def run_github_check(self, application_id: int) -> ScreeningResult:
+        """Downloads candidate resume, fetches public repositories and activity, and evaluates footprint consistency.
+        
+        Saves resulting score and reasoning in the database.
+        Sets github_status to checked or unavailable.
+        """
+        logger.info(f"Starting recruiter-triggered GitHub consistency check for application {application_id}")
+        
+        # 1. Fetch application details with candidate and job records eagerly
+        application = await self.application_repo.get_by_id_with_details(application_id)
+        if not application:
+            raise ValueError(f"Application ID {application_id} not found in database.")
+
+        candidate = application.candidate
+        job = application.job
+
+        # 2. Get or create the ScreeningResult record
+        screening = await self.screening_repo.get_by_application_id(application_id)
+        if not screening:
+            screening = ScreeningResult(
+                application_id=application_id,
+                status=ScreeningStatus.PENDING
+            )
+            screening = await self.screening_repo.create(screening)
+
+        # Update status to processing for the github check
+        screening.github_status = "processing"
+        screening = await self.screening_repo.update(screening)
+
+        # 3. Check if github_url is present
+        if not candidate.github_url:
+            screening.github_status = "unavailable"
+            screening.github_consistency_score = None
+            screening.github_reasoning = "No GitHub URL was provided by the candidate."
+            updated_screening = await self.screening_repo.update(screening)
+            logger.info(f"GitHub consistency check skipped for application {application_id} (No URL provided)")
+            return updated_screening
+
+        try:
+            # 4. Download resume and extract text (needed for comparison)
+            logger.info(f"Downloading resume from key: {application.resume_storage_key}")
+            file_bytes = self.storage_service.download_file(application.resume_storage_key)
+            if not file_bytes:
+                raise ValueError("Downloaded resume file is empty.")
+
+            logger.info("Extracting text from resume for GitHub check")
+            resume_text = self.extractor.extract_text(file_bytes, application.resume_storage_key)
+            if not resume_text:
+                raise ValueError("No text could be extracted from the resume file.")
+
+            # 5. Call GitHubService to check consistency
+            from app.services.github import GitHubService
+            github_service = GitHubService()
+            
+            result = await github_service.check_github_consistency(
+                candidate_name=candidate.name,
+                github_url=candidate.github_url,
+                resume_text=resume_text,
+                job_title=job.title,
+                polished_jd=job.polished_jd or job.raw_jd
+            )
+
+            # 6. Apply values back to the ScreeningResult record
+            screening.github_consistency_score = result.get("github_consistency_score")
+            screening.github_reasoning = result.get("github_reasoning")
+            screening.github_status = "checked"
+            
+            updated_screening = await self.screening_repo.update(screening)
+            logger.info(f"GitHub check completed successfully for application {application_id}")
+            return updated_screening
+
+        except Exception as e:
+            logger.error(f"Failed to perform GitHub check for application {application_id}: {str(e)}")
+            screening.github_status = "unavailable"
+            screening.github_consistency_score = None
+            screening.github_reasoning = f"GitHub check failed: {str(e)}"
+            updated_screening = await self.screening_repo.update(screening)
+            return updated_screening
 
     def calculate_combined_score(self, screening: ScreeningResult) -> dict:
         """Calculates the combined matching score and component-wise contributions.

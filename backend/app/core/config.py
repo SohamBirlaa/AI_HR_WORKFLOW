@@ -20,6 +20,16 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-3.5-flash"
     LLM_TIMEOUT: float = 30.0
 
+    # LLM Fallback Settings
+    GROQ_API_KEY: Optional[str] = None
+    GROQ_MODEL: str = "llama3-8b-8192"
+    LLM_FALLBACK_PROVIDER: str = "groq"
+    LLM_ENABLE_FALLBACK: bool = True
+
+    # GitHub Settings
+    GITHUB_TOKEN: Optional[str] = None
+    MOCK_GITHUB: bool = False
+
     # Storage settings
     STORAGE_PROVIDER: str = "s3"
     S3_ENDPOINT_URL: Optional[str] = None

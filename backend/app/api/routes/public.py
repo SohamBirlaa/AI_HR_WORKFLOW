@@ -5,7 +5,7 @@ from app.api.dependencies import get_db, get_screening_queue
 from app.repositories.job import JobRepository
 from app.repositories.candidate import CandidateRepository
 from app.repositories.application import ApplicationRepository
-from app.services.candidate import CandidateService
+from app.services.candidate import CandidateService, DuplicateApplicationError
 from app.services.storage import S3StorageService
 from app.services.queue_base import BaseScreeningQueue
 from app.schemas.candidate import PublicJobResponse, CandidateCreate, ApplicationResponse
@@ -127,12 +127,21 @@ async def apply_to_job(
             existing_screening.reasoning = None
             existing_screening.strengths = None
             existing_screening.concerns = None
+            existing_screening.github_consistency_score = None
+            existing_screening.github_reasoning = None
+            existing_screening.github_status = "not_checked"
             await screening_repo.update(existing_screening)
         
         # Trigger async AI Resume screening task
         await queue.enqueue_screening(application.id)
         
         return application
+    except DuplicateApplicationError as e:
+        # Candidate duplicate application error mapping
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
     except ValueError as e:
         # Business logic errors (invalid file structure, consent missing, unpublished job)
         raise HTTPException(

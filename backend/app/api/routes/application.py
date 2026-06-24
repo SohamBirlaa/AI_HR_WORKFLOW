@@ -134,3 +134,40 @@ async def get_combined_score(
         )
 
 
+@router.post("/{application_id}/github-check", response_model=ScreeningResultResponse)
+async def trigger_github_check(
+    application_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Trigger the public GitHub consistency assessment check. Protected route.
+    
+    Validates token, triggers LLM evaluation on repositories & activity,
+    saves outcomes, and returns updated screening properties.
+    """
+    application_repo = ApplicationRepository(db)
+    application = await application_repo.get_by_id(application_id)
+    if not application:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Application with ID {application_id} not found."
+        )
+
+    from app.services.screening import ScreeningService
+    service = ScreeningService(db)
+    try:
+        updated_screening = await service.run_github_check(application_id)
+        return updated_screening
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to complete GitHub check: {str(e)}"
+        )
+
+
+

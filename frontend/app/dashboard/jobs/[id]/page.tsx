@@ -149,6 +149,9 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [linkedinNotesInput, setLinkedinNotesInput] = useState<string>("");
   const [savingLinkedin, setSavingLinkedin] = useState(false);
 
+  // GitHub check execution state
+  const [runningGithubCheck, setRunningGithubCheck] = useState(false);
+
   // Fetch applications list from database via the protected endpoint
   const fetchApplications = useCallback(async () => {
     setLoadingApps(true);
@@ -209,6 +212,25 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       setLoadingCombined(false);
     }
   }, []);
+
+  // Recruiter triggers GitHub check manually
+  const triggerGithubCheck = useCallback(async (appId: number) => {
+    setRunningGithubCheck(true);
+    try {
+      const response = await api.post<ScreeningResult>(`/applications/${appId}/github-check`);
+      setScreening(response.data);
+      // Recalculate combined score immediately
+      await fetchCombinedScore(appId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err);
+      alert(
+        err.response?.data?.detail || "Failed to execute GitHub consistency check."
+      );
+    } finally {
+      setRunningGithubCheck(false);
+    }
+  }, [fetchCombinedScore]);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   // Fetch screening results when a new candidate is selected or tab is switched
@@ -1259,6 +1281,129 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                             ) : (
                               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center gap-2">
                                 <span className="text-xs text-slate-450 italic">No screening data found. Click Refresh to synchronize.</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* GitHub Consistency Check Section */}
+                          <div className="border-t border-slate-200 pt-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="block text-[10px] uppercase font-semibold text-slate-600">GitHub Consistency Check</span>
+                              {screening && screening.github_status === "checked" && (
+                                <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-250 uppercase tracking-tight select-none">
+                                  Checked
+                                </span>
+                              )}
+                              {screening && screening.github_status === "unavailable" && (
+                                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 border border-amber-250 uppercase tracking-tight select-none">
+                                  Unavailable
+                                </span>
+                              )}
+                              {(!screening || screening.github_status === "not_checked") && (
+                                <span className="inline-flex items-center rounded-md bg-slate-50 px-2 py-0.5 text-[9px] font-bold text-slate-700 border border-slate-200 uppercase tracking-tight select-none">
+                                  Not Checked
+                                </span>
+                              )}
+                              {screening && screening.github_status === "processing" && (
+                                <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[9px] font-bold text-indigo-700 border border-indigo-200 uppercase tracking-tight select-none">
+                                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                  Analyzing...
+                                </span>
+                              )}
+                            </div>
+
+                            {runningGithubCheck ? (
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 flex items-center justify-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                                <span className="text-xs text-slate-500 font-medium">Running GitHub consistency evaluation...</span>
+                              </div>
+                            ) : screening ? (
+                              <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-xs select-text">
+                                {screening.github_status === "not_checked" && (
+                                  <div className="flex flex-col items-center justify-center py-4 text-center space-y-2.5">
+                                    <p className="text-xs text-slate-500 max-w-sm">
+                                      The GitHub footprint check has not been run for this candidate yet.
+                                    </p>
+                                    <button
+                                      onClick={() => triggerGithubCheck(selectedApp.id)}
+                                      disabled={!selectedApp.candidate.github_url}
+                                      className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer select-none"
+                                    >
+                                      <span>Run GitHub Consistency Check</span>
+                                    </button>
+                                    {!selectedApp.candidate.github_url && (
+                                      <p className="text-[10px] text-amber-600 font-medium italic">
+                                        Candidate did not provide a GitHub profile URL.
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+
+                                {screening.github_status === "processing" && (
+                                  <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
+                                    <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                                    <h4 className="text-xs font-bold text-indigo-900">Analysis In Progress</h4>
+                                    <p className="text-[10px] text-indigo-650 max-w-xs leading-normal">
+                                      We are fetching the candidate&apos;s repository lists, primary languages, and recent push events to analyze tech consistency.
+                                    </p>
+                                  </div>
+                                )}
+
+                                {screening.github_status === "unavailable" && (
+                                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-slate-700">Check Results Unavailable</span>
+                                      <button
+                                        onClick={() => triggerGithubCheck(selectedApp.id)}
+                                        disabled={!selectedApp.candidate.github_url}
+                                        className="text-[10px] text-indigo-650 hover:text-indigo-850 font-bold uppercase tracking-wider disabled:hidden cursor-pointer"
+                                      >
+                                        Re-run Check
+                                      </button>
+                                    </div>
+                                    <p className="text-[11px] text-slate-605 leading-relaxed font-medium">
+                                      {screening.github_reasoning || "Evaluation could not be performed for this candidate."}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {screening.github_status === "checked" && (
+                                  <div className="space-y-4">
+                                    {/* Score Header Grid */}
+                                    <div className="bg-emerald-50/40 border border-emerald-100 rounded-xl p-4 flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <div className="h-12 w-12 rounded-full bg-emerald-600 flex flex-col items-center justify-center text-white shrink-0 shadow-xs select-none">
+                                          <span className="text-[8px] font-bold text-emerald-100 uppercase tracking-tight -mb-0.5">Score</span>
+                                          <span className="text-sm font-black">{screening.github_consistency_score}%</span>
+                                        </div>
+                                        <div>
+                                          <h4 className="text-xs font-bold text-emerald-900">Consistency Rating</h4>
+                                          <p className="text-[10px] text-emerald-600 font-medium">
+                                            GitHub repositories and activity alignment with claimed skills.
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={() => triggerGithubCheck(selectedApp.id)}
+                                        className="text-[10px] bg-white border border-emerald-250 text-emerald-700 hover:bg-emerald-50 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                      >
+                                        Re-run
+                                      </button>
+                                    </div>
+
+                                    {/* GitHub Reasoning */}
+                                    {screening.github_reasoning && (
+                                      <div className="space-y-1 bg-slate-50/50 p-3 rounded-lg border border-slate-100">
+                                        <span className="block text-[9px] uppercase font-semibold text-slate-600">GitHub Consistency Analysis</span>
+                                        <p className="text-[11px] text-slate-800 leading-relaxed font-normal">{screening.github_reasoning}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-center">
+                                <span className="text-xs text-slate-450 italic">No GitHub consistency data available.</span>
                               </div>
                             )}
                           </div>

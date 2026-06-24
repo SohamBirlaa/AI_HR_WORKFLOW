@@ -40,6 +40,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
   // Custom state for the file upload parameter
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isDuplicate, setIsDuplicate] = useState(false);
 
   useEffect(() => {
     const fetchJobInfo = async () => {
@@ -100,6 +101,7 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
   const onSubmit = async (data: ApplyFields) => {
     setErrorMsg(null);
     setFileError(null);
+    setIsDuplicate(false);
 
     if (!resumeFile) {
       setFileError("Please upload your resume to complete your application.");
@@ -127,11 +129,19 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
       setSubmitSuccess(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error(err);
-      setErrorMsg(
-        err.response?.data?.detail || 
-        "An unexpected error occurred during submission. Please try again."
-      );
+      if (err.response?.status === 409) {
+        setIsDuplicate(true);
+        setErrorMsg(
+          "You have already applied for this position. Our HR team will review your application."
+        );
+      } else {
+        console.error(err);
+        setIsDuplicate(false);
+        setErrorMsg(
+          err.response?.data?.detail || 
+          "An unexpected error occurred during submission. Please try again."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -235,15 +245,25 @@ export default function JobApplyPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
 
-        {/* Global Submit Errors banner */}
+        {/* Global Submit Errors/Info banner */}
         {errorMsg && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0 text-rose-500 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-semibold">Submission Error</h3>
-              <p className="text-xs mt-1 text-rose-600 font-medium">{errorMsg}</p>
+          isDuplicate ? (
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-start gap-3 select-text">
+              <CheckCircle className="h-5 w-5 shrink-0 text-blue-600 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-semibold">Application Already Submitted</h3>
+                <p className="text-xs mt-1 text-blue-700 font-medium">{errorMsg}</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl flex items-start gap-3 select-text">
+              <AlertCircle className="h-5 w-5 shrink-0 text-rose-500 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-semibold">Submission Error</h3>
+                <p className="text-xs mt-1 text-rose-600 font-medium">{errorMsg}</p>
+              </div>
+            </div>
+          )
         )}
 
         {/* Form Card */}
