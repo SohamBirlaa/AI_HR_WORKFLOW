@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, Briefcase, Calendar, MapPin, Search } from "lucide-react";
+import { Loader2, Briefcase, Calendar, MapPin, Search, X } from "lucide-react";
 import api from "@/lib/api";
 
 interface Job {
@@ -42,14 +42,27 @@ export default function PublicJobsPage() {
     fetchPublicJobs();
   }, []);
 
-  // Filter listings based on the search query
+  // Filter open vacancies client-side based on job title, company name, details, description, or badges
   const filteredJobs = jobs.filter((job) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      job.title.toLowerCase().includes(query) ||
-      job.company_name.toLowerCase().includes(query) ||
-      (job.polished_jd && job.polished_jd.toLowerCase().includes(query))
-    );
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    
+    const tokens = query.split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return true;
+
+    // Consolidate all searchable job fields and tags
+    const searchableText = [
+      job.title,
+      job.company_name,
+      job.company_details || "",
+      job.polished_jd || "",
+      "remote / hybrid",
+      "full-time",
+      "mid-senior level"
+    ].join(" ").toLowerCase();
+
+    // Verify that every search token is found in the consolidated searchable text
+    return tokens.every((token) => searchableText.includes(token));
   });
 
   return (
@@ -89,18 +102,26 @@ export default function PublicJobsPage() {
       {/* Main Jobs Listing Container */}
       <main className="flex-1 mx-auto max-w-5xl w-full px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         
-        {/* Search Filter Card */}
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-            <Search className="h-4.5 w-4.5 text-slate-400" />
+        {/* Search Filter Input Container */}
+        <div className="relative w-full">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+            <Search className="h-4 w-4 text-slate-400" />
           </div>
           <input
             type="text"
-            className="block w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-sm shadow-xs transition-all"
-            placeholder="Search by role, company, or keyword..."
+            className="block w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-9 text-slate-950 placeholder-slate-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 focus:outline-none text-xs font-semibold shadow-xs transition-all"
+            placeholder="Search by role, skill, company or location..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-700 cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Loading and Error states */}
@@ -166,10 +187,22 @@ export default function PublicJobsPage() {
         ) : (
           <div className="flex flex-col items-center justify-center bg-white border border-slate-200 rounded-2xl py-20 text-slate-400 text-center px-4 shadow-xs">
             <Briefcase className="h-10 w-10 mb-3 text-slate-300" />
-            <p className="text-base font-bold text-slate-800">No Job Openings Found</p>
-            <p className="text-xs mt-1 text-slate-500 max-w-sm">
-              We don&apos;t have any matching positions open at the moment. Please check back later.
+            <h3 className="text-base font-bold text-slate-800">
+              {searchQuery ? "No jobs match your search" : "No Job Openings Found"}
+            </h3>
+            <p className="text-xs mt-1 text-slate-500 max-w-sm leading-relaxed">
+              {searchQuery 
+                ? "We couldn't find any job openings matching your query. Try resetting filters or using generic keywords." 
+                : "We don't have any published openings at the moment. Please check back later."}
             </p>
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         )}
       </main>

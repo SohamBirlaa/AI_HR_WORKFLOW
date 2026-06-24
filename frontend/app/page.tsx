@@ -170,19 +170,27 @@ export default function HomePage() {
     fetchPublicJobs();
   }, []);
 
-  // Filter open vacancies client-side based on job title, company name, details, or location
+  // Filter open vacancies client-side based on job title, company name, details, description, or badges
   const filteredJobs = jobs.filter((job) => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
     
-    const matchesTitle = job.title.toLowerCase().includes(query);
-    const matchesCompany = job.company_name.toLowerCase().includes(query);
-    const matchesDetails = job.company_details?.toLowerCase().includes(query) || false;
-    const matchesJd = job.polished_jd?.toLowerCase().includes(query) || false;
-    
-    // Support location match keywords explicitly
-    const matchesLocation = "remote/hybrid".includes(query) || "remote".includes(query) || "hybrid".includes(query);
+    const tokens = query.split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return true;
 
-    return matchesTitle || matchesCompany || matchesDetails || matchesJd || matchesLocation;
+    // Consolidate all searchable job fields and tags
+    const searchableText = [
+      job.title,
+      job.company_name,
+      job.company_details || "",
+      job.polished_jd || "",
+      "remote / hybrid",
+      "full-time",
+      "mid-senior level"
+    ].join(" ").toLowerCase();
+
+    // Verify that every search token is found in the consolidated searchable text
+    return tokens.every((token) => searchableText.includes(token));
   });
 
   // Calculate dynamic stats from retrieved jobs list
