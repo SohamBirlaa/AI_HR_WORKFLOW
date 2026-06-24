@@ -159,11 +159,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     try {
       const response = await api.get<Application[]>(`/jobs/${jobId}/applications`);
       setApplications(response.data);
-      if (response.data.length > 0) {
-        setSelectedAppId(response.data[0].id);
-      } else {
-        setSelectedAppId(null);
-      }
+      // Always default to no auto-selection upon application retrieval
+      setSelectedAppId(null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
@@ -866,10 +863,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                       const selectedApp = applications.find((a) => a.id === selectedAppId);
                       if (!selectedApp) {
                         return (
-                          <div className="h-full flex flex-col items-center justify-center text-slate-400 py-20">
-                            <User className="h-12 w-12 mb-2 text-slate-300" />
-                            <p className="text-sm font-bold text-slate-800">Select a Candidate</p>
-                            <p className="text-xs text-slate-500">Choose a candidate from the list to review their contact information, social links, and resume.</p>
+                          <div className="h-full flex flex-col items-center justify-center text-slate-400 py-20 text-center">
+                            <User className="h-12 w-12 mb-2 text-slate-300 animate-none" />
+                            <p className="text-sm font-bold text-slate-800">Select a candidate</p>
+                            <p className="text-xs text-slate-500 max-w-sm mt-1">Choose an applicant from the list to review profile details, AI screening, LinkedIn assessment, GitHub check, and combined score.</p>
                           </div>
                         );
                       }
