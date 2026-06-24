@@ -4,15 +4,15 @@ import React, { use, useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  ArrowLeft, 
-  Loader2, 
-  Sparkles, 
-  CheckCircle, 
-  XCircle, 
-  Globe, 
-  Share2, 
-  Building2, 
+import {
+  ArrowLeft,
+  Loader2,
+  Sparkles,
+  CheckCircle,
+  XCircle,
+  Globe,
+  Share2,
+  Building2,
   FileText,
   AlertCircle,
   Clock,
@@ -123,7 +123,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [loadingJob, setLoadingJob] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
+
   const [activeTab, setActiveTab] = useState<"overview" | "polished" | "social" | "applications">("overview");
   const [socialContent, setSocialContent] = useState<SocialContentBundle | null>(null);
 
@@ -161,7 +161,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       } else {
         setSelectedAppId(null);
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setAppsError(
@@ -179,7 +179,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     try {
       const response = await api.get<ScreeningResult>(`/applications/${appId}/screening`);
       setScreening(response.data);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setScreening(null);
@@ -198,7 +198,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     try {
       const response = await api.get<CombinedScore>(`/applications/${appId}/combined-score`);
       setCombinedScore(response.data);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setCombinedScore(null);
@@ -254,7 +254,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       // Re-fetch screening result and combined score to refresh the screen
       await fetchScreeningResult(selectedAppId);
       await fetchCombinedScore(selectedAppId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setErrorMsg(
@@ -294,7 +294,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     try {
       const response = await api.get<Job>(`/jobs/${jobId}`);
       setJob(response.data);
-      
+
       // Auto switch tabs based on job status state: display polished tab directly if available
       if (response.data.polished_jd) {
         setActiveTab("polished");
@@ -310,11 +310,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           console.log("No existing social content found:", socialErr);
         }
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setErrorMsg(
-        err.response?.data?.detail || 
+        err.response?.data?.detail ||
         "Failed to load job posting details from server."
       );
     } finally {
@@ -348,11 +348,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           setActiveTab("polished");
         }
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setErrorMsg(
-        err.response?.data?.detail || 
+        err.response?.data?.detail ||
         `Operation failed: ${err.message}`
       );
     } finally {
@@ -417,7 +417,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans select-none">
-      
+
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -438,9 +438,9 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
       {/* Main Content Container */}
       <div className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-        
+
         {/* Back Link */}
-        <Link 
+        <Link
           href="/dashboard"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-wider"
         >
@@ -463,16 +463,15 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
           {/* Workflow Action Bar */}
           <div className="flex flex-wrap gap-2 items-center">
-            
+
             {/* Generate JD */}
             <button
               onClick={() => handleWorkflowAction("generate-jd")}
               disabled={!canGenerateJD || !!actionLoading}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${
-                canGenerateJD
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${canGenerateJD
                   ? "bg-slate-900 hover:bg-slate-800 text-white border-transparent shadow-xs hover:shadow-md"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               {actionLoading === "generate-jd" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -486,11 +485,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <button
               onClick={() => handleWorkflowAction("approve")}
               disabled={!canReview || !!actionLoading}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${
-                canReview
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${canReview
                   ? "bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-xs hover:shadow-md"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               {actionLoading === "approve" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -504,11 +502,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <button
               onClick={() => handleWorkflowAction("reject")}
               disabled={!canReview || !!actionLoading}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${
-                canReview
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${canReview
                   ? "bg-rose-600 hover:bg-rose-700 text-white border-transparent shadow-xs hover:shadow-md"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               {actionLoading === "reject" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -522,11 +519,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <button
               onClick={() => handleWorkflowAction("publish")}
               disabled={!canPublish || !!actionLoading}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${
-                canPublish
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${canPublish
                   ? "bg-emerald-600 hover:bg-emerald-700 text-white border-transparent shadow-xs hover:shadow-md"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               {actionLoading === "publish" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -540,11 +536,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <button
               onClick={() => handleWorkflowAction("generate-social-content")}
               disabled={!canGenerateSocial || !!actionLoading}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${
-                canGenerateSocial
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold tracking-wide transition-all border cursor-pointer select-none ${canGenerateSocial
                   ? "bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-xs hover:shadow-md"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               {actionLoading === "generate-social-content" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -572,41 +567,37 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         <div className="flex border-b border-slate-200 gap-1 pb-px overflow-x-auto">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-              activeTab === "overview"
+            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${activeTab === "overview"
                 ? "border-slate-900 text-slate-900"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
-            }`}
+              }`}
           >
             Overview
           </button>
           <button
             onClick={() => setActiveTab("polished")}
-            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-              activeTab === "polished"
+            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${activeTab === "polished"
                 ? "border-slate-900 text-slate-900"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
-            }`}
+              }`}
           >
             Polished JD (AI)
           </button>
           <button
             onClick={() => setActiveTab("social")}
-            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-              activeTab === "social"
+            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${activeTab === "social"
                 ? "border-slate-900 text-slate-900"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
-            }`}
+              }`}
           >
             Social Content
           </button>
           <button
             onClick={() => setActiveTab("applications")}
-            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-              activeTab === "applications"
+            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${activeTab === "applications"
                 ? "border-slate-900 text-slate-900"
                 : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
-            }`}
+              }`}
           >
             Applications
           </button>
@@ -614,12 +605,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
         {/* Tab Content Display Workspace */}
         <div className="min-h-[40vh]">
-          
+
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
-                
+
                 {/* Raw JD Card */}
                 <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3 shadow-xs">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wider border-b border-slate-100 pb-2">
@@ -639,7 +630,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
                     Campaign Metadata
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <div>
                       <span className="block text-[10px] uppercase font-medium text-slate-600">Company Name</span>
@@ -718,7 +709,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <div className="space-y-6">
               {socialContent ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  
+
                   {/* Left columns: Generated platform assets */}
                   <div className="lg:col-span-2 space-y-4">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -756,7 +747,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                       <Globe className="h-4 w-4 text-emerald-500" />
                       <span>Branded Visual Card Template</span>
                     </div>
-                    
+
                     <BrandedVisualPreview
                       title={socialContent.visual_title}
                       company={socialContent.visual_company}
@@ -827,9 +818,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                         <div
                           key={app.id}
                           onClick={() => setSelectedAppId(app.id)}
-                          className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors ${
-                            isSelected ? "bg-slate-50 border-l-4 border-slate-900 pl-3" : ""
-                          }`}
+                          className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors ${isSelected ? "bg-slate-50 border-l-4 border-slate-900 pl-3" : ""
+                            }`}
                         >
                           <div className="space-y-1">
                             <div className="flex justify-between items-start gap-2">
@@ -863,74 +853,74 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                       }
                       return (
                         <div className="space-y-6">
-                           {/* Candidate Header */}
-                           <div className="border-b border-slate-200 pb-4 space-y-1">
-                             <h3 className="text-lg font-extrabold text-slate-900 select-text">{selectedApp.candidate.name}</h3>
-                             <p className="text-xs font-semibold text-slate-500">Application ID: {selectedApp.id}</p>
-                           </div>
- 
-                           {/* Candidate Info Grid */}
-                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             <div>
-                               <span className="block text-[10px] uppercase font-medium text-slate-600">Email Address</span>
-                               <a href={`mailto:${selectedApp.candidate.email}`} className="text-sm font-semibold text-slate-800 hover:text-indigo-600 hover:underline select-text">
-                                 {selectedApp.candidate.email}
-                               </a>
-                             </div>
-                             <div>
-                               <span className="block text-[10px] uppercase font-medium text-slate-600">Phone Number</span>
-                               <span className="text-sm font-semibold text-slate-800 select-text">
-                                 {selectedApp.candidate.phone}
-                               </span>
-                             </div>
-                             <div>
-                               <span className="block text-[10px] uppercase font-medium text-slate-600">Applied Date</span>
-                               <span className="text-sm font-semibold text-slate-800 select-text">
-                                 {new Date(selectedApp.applied_at).toLocaleString()}
-                               </span>
-                             </div>
-                             <div>
-                               <span className="block text-[10px] uppercase font-medium text-slate-600">Consent Given</span>
-                               <span className="text-sm font-semibold text-emerald-600 select-text">
-                                 Yes, Consent Agreed
-                               </span>
-                             </div>
-                           </div>
- 
-                           {/* Social Profiles */}
-                           <div className="space-y-2">
-                             <span className="block text-[10px] uppercase font-medium text-slate-600">Professional Links</span>
-                             <div className="flex flex-wrap gap-3">
-                               {selectedApp.candidate.linkedin_url ? (
-                                 <a
-                                   href={selectedApp.candidate.linkedin_url}
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
-                                 >
-                                   LinkedIn
-                                 </a>
-                               ) : (
-                                 <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-500 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
-                                   No LinkedIn Provided
-                                 </span>
-                               )}
-                               {selectedApp.candidate.github_url ? (
-                                 <a
-                                   href={selectedApp.candidate.github_url}
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
-                                 >
-                                   GitHub
-                                 </a>
-                               ) : (
-                                 <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-500 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
-                                   No GitHub Provided
-                                 </span>
-                               )}
-                             </div>
-                           </div>
+                          {/* Candidate Header */}
+                          <div className="border-b border-slate-200 pb-4 space-y-1">
+                            <h3 className="text-lg font-extrabold text-slate-900 select-text">{selectedApp.candidate.name}</h3>
+                            <p className="text-xs font-semibold text-slate-500">Application ID: {selectedApp.id}</p>
+                          </div>
+
+                          {/* Candidate Info Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <span className="block text-[10px] uppercase font-medium text-slate-600">Email Address</span>
+                              <a href={`mailto:${selectedApp.candidate.email}`} className="text-sm font-semibold text-slate-800 hover:text-indigo-600 hover:underline select-text">
+                                {selectedApp.candidate.email}
+                              </a>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] uppercase font-medium text-slate-600">Phone Number</span>
+                              <span className="text-sm font-semibold text-slate-800 select-text">
+                                {selectedApp.candidate.phone}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] uppercase font-medium text-slate-600">Applied Date</span>
+                              <span className="text-sm font-semibold text-slate-800 select-text">
+                                {new Date(selectedApp.applied_at).toLocaleString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] uppercase font-medium text-slate-600">Consent Given</span>
+                              <span className="text-sm font-semibold text-emerald-600 select-text">
+                                Yes, Consent Agreed
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Social Profiles */}
+                          <div className="space-y-2">
+                            <span className="block text-[10px] uppercase font-medium text-slate-600">Professional Links</span>
+                            <div className="flex flex-wrap gap-3">
+                              {selectedApp.candidate.linkedin_url ? (
+                                <a
+                                  href={selectedApp.candidate.linkedin_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
+                                >
+                                  LinkedIn
+                                </a>
+                              ) : (
+                                <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-500 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
+                                  No LinkedIn Provided
+                                </span>
+                              )}
+                              {selectedApp.candidate.github_url ? (
+                                <a
+                                  href={selectedApp.candidate.github_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 text-xs font-bold tracking-wide transition-all shadow-xs cursor-pointer select-none"
+                                >
+                                  GitHub
+                                </a>
+                              ) : (
+                                <span className="inline-flex items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-500 px-3 py-2 text-xs font-medium cursor-not-allowed select-none">
+                                  No GitHub Provided
+                                </span>
+                              )}
+                            </div>
+                          </div>
 
                           {/* Dynamic Combined Match Index Card */}
                           <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs select-text">
@@ -966,7 +956,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                 {/* Contributions progress bars */}
                                 <div className="space-y-3 pt-1">
                                   <span className="block text-[9px] uppercase font-semibold text-slate-600 tracking-wider">Contributions Summary</span>
-                                  
+
                                   <div className="space-y-2.5">
                                     {/* CV Match */}
                                     <div className="space-y-1">
@@ -977,8 +967,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                         </span>
                                       </div>
                                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                        <div 
-                                          className="h-full bg-indigo-650 rounded-full transition-all duration-500" 
+                                        <div
+                                          className="h-full bg-indigo-650 rounded-full transition-all duration-500"
                                           style={{ width: `${combinedScore.cv_score ?? 0}%` }}
                                         />
                                       </div>
@@ -993,8 +983,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                         </span>
                                       </div>
                                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                        <div 
-                                          className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
+                                        <div
+                                          className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                                           style={{ width: `${combinedScore.linkedin_score ?? 0}%` }}
                                         />
                                       </div>
@@ -1009,8 +999,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                         </span>
                                       </div>
                                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                        <div 
-                                          className="h-full bg-amber-500 rounded-full transition-all duration-500" 
+                                        <div
+                                          className="h-full bg-amber-500 rounded-full transition-all duration-500"
                                           style={{ width: `${combinedScore.github_score ?? 0}%` }}
                                         />
                                       </div>
@@ -1192,7 +1182,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                                 {screening.status === "completed" && (
                                   <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-xs select-text">
-                                    
+
                                     {/* Score Header Grid */}
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                       <div className="bg-indigo-50/40 border border-indigo-100 rounded-lg p-2.5 text-center">
