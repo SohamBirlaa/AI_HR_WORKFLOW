@@ -23,3 +23,20 @@ dependencies = [
     "pymupdf>=1.24.2",
     "python-docx>=1.1.2",
 ]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-env>=1.1.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+env = [
+    "DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ai_hr_test",
+    "MOCK_GITHUB=True",
+    "GEMINI_API_KEY=mock",
+    "GROQ_API_KEY=mock",
+    "JWT_SECRET=super_secret_test_key_change_in_production_not_here",
+]

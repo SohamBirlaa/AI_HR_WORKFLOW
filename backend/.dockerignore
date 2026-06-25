@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+tests
+.env
+db.sqlite3
+resumes/
+resumes_test/
