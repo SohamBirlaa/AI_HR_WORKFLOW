@@ -269,3 +269,27 @@ async def test_llm_gateway_fallback_mechanism():
     
     res = await gateway.generate_text("Please process this prompt.")
     assert res == "Fallback dynamic response"
+
+
+def test_s3_public_endpoint_generation(monkeypatch):
+    """Verify that S3StorageService uses S3_PUBLIC_ENDPOINT_URL for presigned URLs when configured."""
+    from app.services.storage import S3StorageService
+    from app.core.config import settings
+
+    # Temporarily override settings
+    monkeypatch.setattr(settings, "S3_ENDPOINT_URL", "http://minio-internal:9000")
+    monkeypatch.setattr(settings, "S3_PUBLIC_ENDPOINT_URL", "http://localhost:9000")
+    monkeypatch.setattr(settings, "S3_ACCESS_KEY", "minioadmin")
+    monkeypatch.setattr(settings, "S3_SECRET_KEY", "minioadmin")
+    monkeypatch.setattr(settings, "S3_REGION", "us-east-1")
+
+    # Restore the original class method
+    monkeypatch.setattr(S3StorageService, "get_resume_download_url", S3StorageService.original_get_resume_download_url)
+
+    # Initialize service and check URL generation
+    service = S3StorageService()
+    url = service.get_resume_download_url("resumes/test.pdf")
+
+    assert "http://localhost:9000" in url
+    assert "http://minio-internal:9000" not in url
+

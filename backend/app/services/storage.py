@@ -27,6 +27,17 @@ class S3StorageService(BaseStorageService):
             config=s3_config
         )
 
+        # Initialize public S3 client for presigned URL generation (or default to normal s3_client if not set)
+        public_endpoint = settings.S3_PUBLIC_ENDPOINT_URL or settings.S3_ENDPOINT_URL
+        self.public_s3_client = boto3.client(
+            "s3",
+            endpoint_url=public_endpoint,
+            aws_access_key_id=settings.S3_ACCESS_KEY,
+            aws_secret_access_key=settings.S3_SECRET_KEY,
+            region_name=settings.S3_REGION,
+            config=s3_config
+        )
+
     def validate_resume_file(self, content: bytes, content_type: str) -> bool:
         """Inspects file headers (magic bytes) and MIME structure to validate file authenticity.
         
@@ -107,7 +118,7 @@ class S3StorageService(BaseStorageService):
     def get_resume_download_url(self, storage_key: str) -> str:
         """Generates a transient, secure presigned download link for the resume object."""
         try:
-            url = self.s3_client.generate_presigned_url(
+            url = self.public_s3_client.generate_presigned_url(
                 "get_object",
                 Params={"Bucket": self.bucket_name, "Key": storage_key},
                 ExpiresIn=3600  # Token expires in 1 hour

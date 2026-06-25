@@ -192,6 +192,8 @@ def mock_llm_factory(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_s3_storage(monkeypatch):
     """Stub out S3 storage service to bypass botocore S3 network calls and mock document extraction."""
+    S3StorageService.original_get_resume_download_url = S3StorageService.get_resume_download_url
+    
     async def mock_upload_resume(self, file_content, filename):
         return f"resumes/mock-uuid.{filename.split('.')[-1]}"
         

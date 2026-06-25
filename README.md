@@ -140,6 +140,7 @@ GROQ_MODEL=llama-3.1-8b-instant
 # --- S3 / MinIO Object Storage ---
 STORAGE_PROVIDER=s3
 S3_ENDPOINT_URL=http://localhost:9000
+S3_PUBLIC_ENDPOINT_URL=http://localhost:9000
 S3_ACCESS_KEY=minioadmin
 S3_SECRET_KEY=minioadmin
 S3_BUCKET_NAME=ai-hr-resumes
