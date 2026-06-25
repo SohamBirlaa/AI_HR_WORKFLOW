@@ -40,3 +40,7 @@ env = [
     "GROQ_API_KEY=mock",
     "JWT_SECRET=super_secret_test_key_change_in_production_not_here",
 ]
+
+[tool.setuptools]
+packages = ["app"]
+
