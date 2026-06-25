@@ -222,7 +222,33 @@ docker compose down
 
 ---
 
-## 10. Testing Strategy & Operations
+## 10. Production Cloud Deployment (Vercel + Railway + AWS S3)
+
+The application is prepared for seamless production cloud deployments across **Vercel** (Frontend client), **Railway** (Backend web service and PostgreSQL database), and **AWS S3** (Resume file storage).
+
+### Deployment Environment Variables
+
+#### Backend (Railway Service)
+* `DATABASE_URL`: `postgresql+asyncpg://<user>:<password>@<host>:<port>/<dbname>` (Automatically provided by Railway database bindings)
+* `PORT`: Dynamically injected by Railway (Backend automatically binds Uvicorn to `0.0.0.0:${PORT}`)
+* `JWT_SECRET`: Random secure string for encryption signatures
+* `BACKEND_CORS_ORIGINS`: JSON array of allowed origins (e.g. `["https://your-app.vercel.app"]`)
+* `STORAGE_PROVIDER`: `s3`
+* `S3_ENDPOINT_URL`: `https://s3.<region>.amazonaws.com` (or empty for default AWS S3 endpoint resolution)
+* `S3_PUBLIC_ENDPOINT_URL`: `https://s3.<region>.amazonaws.com` (Used for browser-facing presigned resume downloads)
+* `S3_ACCESS_KEY` & `S3_SECRET_KEY`: AWS IAM User credentials with S3 read/write permissions
+* `S3_BUCKET_NAME`: Target AWS S3 bucket name (e.g., `ai-hr-resumes-prod`)
+* `S3_REGION`: Target AWS S3 Region (e.g., `us-east-1`)
+* `GEMINI_API_KEY`: Google AI studio key for resume screening and JD rewriting
+* `GROQ_API_KEY`: Groq API key for LLM gateway fallback resilience (optional)
+* `MOCK_GITHUB`: `False` (for live candidate GitHub repository footprint verification checks)
+
+#### Frontend (Vercel)
+* `NEXT_PUBLIC_API_URL`: `https://<your-railway-app-url>/api/v1`
+
+---
+
+## 11. Testing Strategy & Operations
 
 ### Testing Strategy
 The platform follows a three-layered verification layout to maintain regression resistance:
@@ -249,7 +275,7 @@ npm run build
 
 ---
 
-## 11. CI/CD Integration (GitHub Actions)
+## 12. CI/CD Integration (GitHub Actions)
 
 A self-contained testing pipeline is declared in `.github/workflows/ci.yml`. It runs automatically on push/pull requests to verify code integrity:
 1. **Backend Checks**: Launches a PostgreSQL service container inside the runner, installs dependencies, compiles backend code, and runs the Pytest suite.
@@ -258,7 +284,7 @@ A self-contained testing pipeline is declared in `.github/workflows/ci.yml`. It 
 
 ---
 
-## 12. API Overview
+## 13. API Overview
 
 * **Authentication (`/api/v1/auth`)**:
   * `POST /login`: Logs in the recruiter, issuing a JWT access token via cookies.
@@ -279,7 +305,7 @@ A self-contained testing pipeline is declared in `.github/workflows/ci.yml`. It 
 
 ---
 
-## 13. Security Notes
+## 14. Security Notes
 
 * **JWT Verification**: Recruiter routes are secured using JWT signatures.
 * **Consent Verification**: Submissions are strictly block-rejected at the service layer if candidate consent flags are not checked.
@@ -289,7 +315,7 @@ A self-contained testing pipeline is declared in `.github/workflows/ci.yml`. It 
 
 ---
 
-## 14. Assignment Scope vs Product Roadmap
+## 15. Assignment Scope vs Product Roadmap
 
 ### Completed for Assignment
 - **Dual-Track Seeding**: Safe seeding mechanism preventing password logging with development defaults.
@@ -309,31 +335,31 @@ A self-contained testing pipeline is declared in `.github/workflows/ci.yml`. It 
 
 ---
 
-## 15. Future Improvements
+## 16. Future Improvements
 * **Advanced Resume Parsing**: Shift from simple text-extraction to structured JSON layout analysis.
 * **Real-time screening notifications**: Notify candidates and recruiters via email/SMS immediately on status transitions.
 * **Dynamic Weight Adjustment Dashboard**: A UI component allowing recruiters to custom-adjust screening weights per job role.
 
 ---
 
-## 16. Contributing
+## 17. Contributing
 This repository is an assignment codebase and currently not accepting external pull requests. For suggestions or architectural questions, please contact the author directly.
 
 ---
 
-## 17. License
+## 18. License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 18. Acknowledgements
+## 19. Acknowledgements
 * The Google Gemini team for providing structured JSON schema AI extraction guides.
 * The Next.js team for providing standalone multi-stage docker configurations.
 * The SQLAlchemy developers for providing state-of-the-art async session structures.
 
 ---
 
-## 19. Author
+## 20. Author
 
 * **Soham Birla**
 * AI/ML & Full-Stack Developer

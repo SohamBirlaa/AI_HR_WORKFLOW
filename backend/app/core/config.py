@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    BACKEND_CORS_ORIGINS: list[str] = ["*"]
 
     # Initial Admin Config
     INITIAL_ADMIN_EMAIL: str = "admin@company.com"
