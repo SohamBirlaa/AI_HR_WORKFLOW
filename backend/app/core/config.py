@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
+    # Initial Admin Config
+    INITIAL_ADMIN_EMAIL: str = "admin@company.com"
+    INITIAL_ADMIN_PASSWORD: str = "admin123"
+
     # LLM Settings
     LLM_PROVIDER: str = "gemini"
     GEMINI_API_KEY: Optional[str] = None
