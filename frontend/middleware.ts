@@ -9,7 +9,8 @@ export function middleware(request: NextRequest) {
   // Route Guard: If trying to access protected dashboard routes and the token cookie is missing,
   // abort the request and redirect the user back to the /login page
   if (pathname.startsWith("/dashboard") && !token) {
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
     return NextResponse.redirect(loginUrl);
   }
 
